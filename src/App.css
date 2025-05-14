@@ -45,21 +45,27 @@ body {
 
 .card {
   max-width: 400px;
-  width: 100%;
+  width: 200%;
+  height: 80%;
   background: #fff;
-  border-radius: 10px;
+  border-radius: 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   padding: 2rem;
   text-align: center;
+  transition: transform 0.2s;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   margin: auto;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .card img {
-  width: 100px;
+  width: 200px;
   margin-bottom: 1rem;
 }
 
