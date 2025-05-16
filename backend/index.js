@@ -124,8 +124,14 @@ app.post('/login', (req, res) => {
 
 // Rutas para manejar platillos
 app.get('/dishes', (req, res) => {
-  const query = 'SELECT * FROM dishes';
-  db.query(query, (err, results) => {
+  const type = req.query.type;
+  let query = 'SELECT * FROM dishes';
+  const params = [];
+  if (type && ['desayuno', 'almuerzo', 'cena'].includes(type)) {
+    query += ' WHERE type = ?';
+    params.push(type);
+  }
+  db.query(query, params, (err, results) => {
     if (err) {
       res.status(500).send('Error al obtener platillos');
     } else {
