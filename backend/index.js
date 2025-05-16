@@ -210,6 +210,21 @@ app.get('/payments', (req, res) => {
   });
 });
 
+// Ruta para eliminar un platillo
+app.delete('/dishes/:id', (req, res) => {
+  const dishId = req.params.id;
+  const query = 'DELETE FROM dishes WHERE id = ?';
+  db.query(query, [dishId], (err, result) => {
+    if (err) {
+      res.status(500).send('Error al eliminar el platillo');
+    } else if (result.affectedRows === 0) {
+      res.status(404).send('Platillo no encontrado');
+    } else {
+      res.status(200).send('Platillo eliminado exitosamente');
+    }
+  });
+});
+
 app.post('/payments', (req, res) => {
   const { order_id, total, method } = req.body;
   db.query('INSERT INTO payments (order_id, total, method) VALUES (?, ?, ?)', [order_id, total, method], (err) => {
