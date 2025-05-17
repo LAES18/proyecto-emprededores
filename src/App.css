@@ -1,3 +1,131 @@
+body, .waiter-bg, .admin-bg, .kitchen-bg, .cashier-bg, .container-fluid, .container {
+  background: linear-gradient(120deg, #f8b500 0%, #fceabb 100%) !important;
+  min-height: 100vh;
+}
+
+#root {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 0;
+  text-align: center;
+}
+
+.card, .waiter-card, .admin-card, .kitchen-card, .cashier-card, .list-group-item, .form-control, .form-select {
+  border-radius: 18px !important;
+  border: none !important;
+  background: #fff8e1 !important;
+  box-shadow: 0 4px 16px rgba(184, 92, 0, 0.08) !important;
+}
+
+.card:hover, .waiter-card:hover, .admin-card:hover, .kitchen-card:hover, .cashier-card:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 8px 24px rgba(184, 92, 0, 0.18) !important;
+}
+
+.waiter-title, .admin-title, .kitchen-title, .cashier-title, .navbar-brand {
+  font-family: 'Merriweather', serif;
+  color: #7c4700;
+  font-size: 2.5rem;
+  letter-spacing: 1px;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+}
+
+.waiter-section-title, .admin-section-title, .kitchen-section-title, .cashier-section-title {
+  color: #b85c00;
+  font-family: 'Merriweather', serif;
+  font-size: 1.7rem;
+  margin-bottom: 1.5rem;
+}
+
+.waiter-label, .admin-label, .kitchen-label, .cashier-label {
+  color: #7c4700;
+  font-weight: 600;
+}
+
+.waiter-badge, .admin-badge, .kitchen-badge, .cashier-badge {
+  background: #f8b500 !important;
+  color: #fff !important;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.4em 0.8em;
+}
+
+.waiter-price, .admin-price, .kitchen-price, .cashier-price {
+  color: #7c4700;
+  font-size: 1.1rem;
+}
+
+.btn-primary, .waiter-add-btn, .admin-add-btn, .kitchen-add-btn, .cashier-add-btn {
+  background: #b85c00 !important;
+  border: none !important;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.btn-primary:hover, .waiter-add-btn:hover, .admin-add-btn:hover, .kitchen-add-btn:hover, .cashier-add-btn:hover {
+  background: #f8b500 !important;
+  color: #fff !important;
+}
+
+.btn-success, .waiter-send-btn, .admin-send-btn, .kitchen-send-btn, .cashier-send-btn {
+  background: #43a047 !important;
+  border: none !important;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-top: 10px;
+}
+.btn-success:disabled, .waiter-send-btn:disabled, .admin-send-btn:disabled, .kitchen-send-btn:disabled, .cashier-send-btn:disabled {
+  background: #bdbdbd !important;
+  color: #fff !important;
+}
+
+.btn-danger, .waiter-remove-btn, .admin-remove-btn, .kitchen-remove-btn, .cashier-remove-btn {
+  background: #e74c3c !important;
+  border: none !important;
+}
+.btn-danger:hover, .waiter-remove-btn:hover, .admin-remove-btn:hover, .kitchen-remove-btn:hover, .cashier-remove-btn:hover {
+  background: #c0392b !important;
+}
+
+.navbar, .nav-tabs {
+  background: #fff8e1 !important;
+  border-radius: 18px !important;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(184, 92, 0, 0.08) !important;
+}
+
+.nav-link.active, .nav-link:focus, .nav-link:hover {
+  background: #f8b500 !important;
+  color: #fff !important;
+  border-radius: 12px !important;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  background: #fceabb;
+}
+::-webkit-scrollbar-thumb {
+  background: #f8b500;
+  border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .waiter-title, .admin-title, .kitchen-title, .cashier-title, .navbar-brand {
+    font-size: 2rem;
+  }
+  .waiter-section-title, .admin-section-title, .kitchen-section-title, .cashier-section-title {
+    font-size: 1.2rem;
+  }
+  .card-img-top, .waiter-card-img, .admin-card-img, .kitchen-card-img, .cashier-card-img {
+    height: 120px !important;
+  }
+}
+
+body, .waiter-title, .admin-title, .kitchen-title, .cashier-title {
+  font-family: 'Merriweather', serif;
+}
+
 body {
   display: flex;
   justify-content: center;
@@ -119,6 +247,95 @@ body {
   padding: 15px;
 }
 
+/* Restaurante - WaiterScreen estilos personalizados */
+.waiter-bg {
+  background: linear-gradient(120deg, #f8b500 0%, #fceabb 100%);
+  min-height: 100vh;
+}
+.waiter-title {
+  font-family: 'Merriweather', serif;
+  color: #7c4700;
+  font-size: 2.5rem;
+  letter-spacing: 1px;
+  font-weight: bold;
+}
+.waiter-section-title {
+  color: #b85c00;
+  font-family: 'Merriweather', serif;
+  font-size: 1.7rem;
+  margin-bottom: 1.5rem;
+}
+.waiter-label {
+  color: #7c4700;
+  font-weight: 600;
+}
+.waiter-card {
+  border-radius: 18px;
+  border: none;
+  background: #fff8e1;
+  box-shadow: 0 4px 16px rgba(184, 92, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.waiter-card:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 8px 24px rgba(184, 92, 0, 0.18);
+}
+.waiter-card-img {
+  height: 160px;
+  object-fit: cover;
+  border-radius: 18px 18px 0 0;
+}
+.waiter-dish-name {
+  color: #b85c00;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+.waiter-badge {
+  background: #f8b500 !important;
+  color: #fff !important;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.4em 0.8em;
+}
+.waiter-price {
+  color: #7c4700;
+  font-size: 1.1rem;
+}
+.waiter-add-btn {
+  background: #b85c00;
+  border: none;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.waiter-add-btn:hover {
+  background: #f8b500;
+  color: #fff;
+}
+.waiter-order-item {
+  background: #fff8e1;
+  color: #7c4700;
+  font-weight: 500;
+}
+.waiter-remove-btn {
+  background: #e74c3c;
+  border: none;
+}
+.waiter-remove-btn:hover {
+  background: #c0392b;
+}
+.waiter-send-btn {
+  background: #43a047;
+  border: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-top: 10px;
+}
+.waiter-send-btn:disabled {
+  background: #bdbdbd;
+  color: #fff;
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 10px;
@@ -130,6 +347,16 @@ body {
 
   .form-control, .btn-primary {
     max-width: 100%;
+  }
+
+  .waiter-card-img {
+    height: 120px;
+  }
+  .waiter-title {
+    font-size: 2rem;
+  }
+  .waiter-section-title {
+    font-size: 1.2rem;
   }
 }
 
