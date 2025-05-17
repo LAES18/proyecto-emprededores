@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const AdminScreen = () => {
+  const [activeTab, setActiveTab] = useState('platillos');
   const [dishes, setDishes] = useState([]);
   const [users, setUsers] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -17,8 +18,6 @@ const AdminScreen = () => {
   const [errorSpoonacular, setErrorSpoonacular] = useState("");
   const [spoonacularTypeSelect, setSpoonacularTypeSelect] = useState({ show: false, item: null });
   const [selectedType, setSelectedType] = useState('desayuno');
-
-  const SPOONACULAR_API_KEY = "67ce982a724d41798877cf212f48d0de";
 
   useEffect(() => {
     const fetchAll = () => {
@@ -42,9 +41,9 @@ const AdminScreen = () => {
 
   const handleAddDish = () => {
     axios.post('http://localhost:3001/dishes', newDish)
-      .then(response => {
-        setDishes([...dishes, response.data]);
+      .then(() => {
         setNewDish({ name: '', price: '', type: 'desayuno' });
+        axios.get('http://localhost:3001/dishes').then(r => setDishes(r.data));
       })
       .catch(error => console.error('Error al agregar el platillo:', error));
   };
@@ -124,8 +123,22 @@ const AdminScreen = () => {
   return (
     <div className="container mt-4">
       <h1 className="mb-4">Pantalla del Administrador</h1>
-      <div className="row">
-        <div className="col-md-6">
+      <ul className="nav nav-tabs mb-4">
+        <li className="nav-item">
+          <button className={`nav-link${activeTab === 'platillos' ? ' active' : ''}`} onClick={() => setActiveTab('platillos')}>Gestión de Platillos</button>
+        </li>
+        <li className="nav-item">
+          <button className={`nav-link${activeTab === 'ordenes' ? ' active' : ''}`} onClick={() => setActiveTab('ordenes')}>Órdenes</button>
+        </li>
+        <li className="nav-item">
+          <button className={`nav-link${activeTab === 'usuarios' ? ' active' : ''}`} onClick={() => setActiveTab('usuarios')}>Gestión de Usuarios</button>
+        </li>
+        <li className="nav-item">
+          <button className={`nav-link${activeTab === 'pagos' ? ' active' : ''}`} onClick={() => setActiveTab('pagos')}>Pagos</button>
+        </li>
+      </ul>
+      {activeTab === 'platillos' && (
+        <div>
           <h2>Gestión de Platillos</h2>
           <div className="mb-3">
             <label className="form-label">Buscar platillo en Spoonacular:</label>
@@ -177,7 +190,7 @@ const AdminScreen = () => {
           <ul className="list-group mb-3">
             {dishes.map(dish => (
               <li className="list-group-item d-flex justify-content-between align-items-center" key={dish.id}>
-                {dish.name} - ${dish.price}
+                {dish.name} - ${dish.price} <span className="badge bg-secondary">{dish.type}</span>
                 <button className="btn btn-danger btn-sm" onClick={() => handleDeleteDish(dish.id)}>Eliminar</button>
               </li>
             ))}
@@ -208,17 +221,9 @@ const AdminScreen = () => {
           </select>
           <button className="btn btn-primary" onClick={handleAddDish}>Agregar</button>
         </div>
-        <div className="col-md-6">
-          <h2>Gestión de Usuarios</h2>
-          <ul className="list-group">
-            {users.map(user => (
-              <li className="list-group-item" key={user.id}>{user.name} - {user.role}</li>
-            ))}
-          </ul>
-        </div>
-      </div>
-      <div className="row mt-4">
-        <div className="col-md-6">
+      )}
+      {activeTab === 'ordenes' && (
+        <div>
           <h2>Órdenes</h2>
           <div className="mb-2">
             <label className="form-label">Filtrar por estado:</label>
@@ -248,7 +253,19 @@ const AdminScreen = () => {
             ))}
           </ul>
         </div>
-        <div className="col-md-6">
+      )}
+      {activeTab === 'usuarios' && (
+        <div>
+          <h2>Gestión de Usuarios</h2>
+          <ul className="list-group">
+            {users.map(user => (
+              <li className="list-group-item" key={user.id}>{user.name} - {user.role}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {activeTab === 'pagos' && (
+        <div>
           <h2>Pagos</h2>
           <ul className="list-group mb-3">
             {payments.map(payment => (
@@ -258,7 +275,7 @@ const AdminScreen = () => {
             ))}
           </ul>
         </div>
-      </div>
+      )}
     </div>
   );
 };

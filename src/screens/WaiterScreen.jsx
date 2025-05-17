@@ -6,183 +6,116 @@ const WaiterScreen = () => {
   const [selectedDishes, setSelectedDishes] = useState([]);
   const [mesa, setMesa] = useState('');
   const [tipo, setTipo] = useState('todos');
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState(null);
-  const [showConfirm, setShowConfirm] = useState(false);
-
-  const fetchDishes = (type) => {
-    let url = 'http://localhost:3001/dishes';
-    if (type && type !== 'todos') {
-      url += `?type=${type}`;
-    }
-    axios.get(url)
-      .then(response => setDishes(response.data))
-      .catch(error => console.error('Error al obtener los platillos:', error));
-  };
 
   useEffect(() => {
-    fetchDishes(tipo);
+    const fetchDishes = () => {
+      let url = 'http://localhost:3001/dishes';
+      if (tipo !== 'todos') {
+        url += `?type=${tipo}`;
+      }
+      axios.get(url)
+        .then(response => {
+          // Si no hay imagen, asignar una por defecto según el tipo
+          const defaultImages = {
+            desayuno: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
+            almuerzo: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&q=80',
+            cena: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
+            default: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
+          };
+          const dishesWithImages = response.data.map(dish => ({
+            ...dish,
+            image: dish.image || defaultImages[dish.type] || defaultImages.default
+          }));
+          setDishes(dishesWithImages);
+        })
+        .catch(error => console.error('Error al obtener los platillos:', error));
+    };
+    fetchDishes();
   }, [tipo]);
 
   const handleSelectDish = (dish) => {
-    if (!selectedDishes.find(d => d.id === dish.id)) {
-      setSelectedDishes([...selectedDishes, dish]);
-    }
+    setSelectedDishes([...selectedDishes, dish]);
   };
 
   const handleRemoveDish = (index) => {
     setSelectedDishes(selectedDishes.filter((_, i) => i !== index));
   };
 
-  const validateMesa = (value) => {
-    // Solo permitir números y no vacío
-    return /^\d+$/.test(value);
-  };
-
-  const handleMesaChange = (e) => {
-    const value = e.target.value;
-    if (value === '' || validateMesa(value)) {
-      setMesa(value);
-    }
-  };
-
-  const totalPrice = selectedDishes.reduce((sum, dish) => sum + parseFloat(dish.price), 0).toFixed(2);
-
   const handleSendOrder = () => {
     if (!mesa) {
-      setMessage({ type: 'error', text: 'Por favor, ingresa el número de mesa.' });
+      alert('Por favor, ingresa el número de mesa.');
       return;
     }
     if (selectedDishes.length === 0) {
-      setMessage({ type: 'error', text: 'Por favor, selecciona al menos un platillo.' });
+      alert('Selecciona al menos un platillo.');
       return;
     }
-    setShowConfirm(true);
-  };
-
-  const confirmSendOrder = () => {
-    setShowConfirm(false);
-    setLoading(true);
-    setMessage(null);
     const orderData = {
       dishes: selectedDishes.map(dish => ({ dish_id: dish.id })),
-      user_id: 1, // Reemplazar con el usuario real
+      user_id: 1, // Reemplazar con el usuario real si tienes auth
       mesa,
     };
     axios.post('http://localhost:3001/orders', orderData)
       .then(() => {
-        setMessage({ type: 'success', text: 'Orden enviada exitosamente' });
+        alert('Orden enviada exitosamente');
         setSelectedDishes([]);
         setMesa('');
       })
       .catch(error => {
+        alert('Error al enviar la orden');
         console.error('Error al enviar la orden:', error);
-        alert('Error al enviar la orden. Por favor verifica la consola para más detalles.');
-        setMessage({ type: 'error', text: 'Error al enviar la orden. Intenta de nuevo.' });
-      })
-      .finally(() => setLoading(false));
+      });
   };
 
   return (
     <div className="container mt-4">
       <h1 className="mb-4">Pantalla del Mesero</h1>
-      <div className="mb-3">
-        <label className="form-label me-3">Filtrar por tipo:</label>
-        {['todos', 'desayuno', 'almuerzo', 'cena'].map(typeOption => (
-          <button
-            key={typeOption}
-            className={`btn me-2 ${tipo === typeOption ? 'btn-primary' : 'btn-outline-primary'}`}
-            onClick={() => setTipo(typeOption)}
-          >
-            {typeOption.charAt(0).toUpperCase() + typeOption.slice(1)}
-          </button>
-        ))}
-      </div>
+      <h2 className="mt-4">Carta de Platillos</h2>
       <div className="mb-3 row">
         <div className="col-md-4">
+          <label className="form-label">Filtrar por tipo:</label>
+          <select className="form-select" value={tipo} onChange={e => setTipo(e.target.value)}>
+            <option value="todos">Todos</option>
+            <option value="desayuno">Desayuno</option>
+            <option value="almuerzo">Almuerzo</option>
+            <option value="cena">Cena</option>
+          </select>
+        </div>
+        <div className="col-md-4">
           <label className="form-label">Número de mesa:</label>
-          <input
-            className="form-control"
-            type="text"
-            value={mesa}
-            onChange={handleMesaChange}
-            placeholder="Ej: 5"
-            maxLength={3}
-          />
+          <input className="form-control" type="text" value={mesa} onChange={e => setMesa(e.target.value)} placeholder="Ej: 5" />
         </div>
       </div>
-      <h2 className="mt-4">Selecciona los platillos</h2>
-      <div className="row" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+      <div className="row g-3">
         {dishes.map(dish => (
-          <div className="col-md-4 mb-3" key={dish.id}>
-            <div className="card" style={{ boxShadow: 'none' }}>
+          <div className="col-6 col-md-3" key={dish.id}>
+            <div className="card h-100 shadow-sm" style={{ minHeight: 220 }}>
               {dish.image && (
-                <img src={dish.image} alt={dish.name} className="card-img-top" />
+                <img src={dish.image} alt={dish.name} className="card-img-top" style={{ height: 120, objectFit: 'cover', borderTopLeftRadius: '0.5rem', borderTopRightRadius: '0.5rem' }} />
               )}
-              <div className="card-body">
-                <h5 className="card-title">{dish.name}</h5>
-                <p className="card-text">Tipo: {dish.type}</p>
-                <p className="card-text">Precio: ${dish.price}</p>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => handleSelectDish(dish)}
-                  disabled={selectedDishes.find(d => d.id === dish.id)}
-                >
-                  {selectedDishes.find(d => d.id === dish.id) ? 'Agregado' : 'Agregar'}
-                </button>
+              <div className="card-body d-flex flex-column justify-content-between">
+                <div>
+                  <h5 className="card-title mb-1">{dish.name}</h5>
+                  <span className="badge bg-secondary mb-2">{dish.type}</span>
+                  <p className="card-text fw-bold">${dish.price}</p>
+                </div>
+                <button className="btn btn-primary mt-2 w-100" onClick={() => handleSelectDish(dish)}>Agregar</button>
               </div>
             </div>
           </div>
         ))}
       </div>
-      <h2 className="mt-4">Orden seleccionada ({selectedDishes.length})</h2>
+      <h2 className="mt-4">Orden seleccionada</h2>
       <ul className="list-group mb-3">
         {selectedDishes.map((dish, index) => (
           <li className="list-group-item d-flex justify-content-between align-items-center" key={index}>
-            {dish.name} - ${dish.price}
+            {dish.name} <span className="badge bg-info">{dish.type}</span>
+            <span>${dish.price}</span>
             <button className="btn btn-danger btn-sm" onClick={() => handleRemoveDish(index)}>Quitar</button>
           </li>
         ))}
       </ul>
-      <p><strong>Total: </strong>${totalPrice}</p>
-      {message && (
-        <div className={`alert ${message.type === 'error' ? 'alert-danger' : 'alert-success'}`} role="alert">
-          {message.text}
-        </div>
-      )}
-      <button
-        className="btn btn-success"
-        onClick={handleSendOrder}
-        disabled={selectedDishes.length === 0 || !mesa || loading}
-      >
-        {loading ? 'Enviando...' : 'Enviar Orden'}
-      </button>
-
-      {/* Confirmation Modal */}
-      {showConfirm && (
-        <div className="modal d-block" tabIndex="-1" role="dialog" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog" role="document">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Confirmar Orden</h5>
-                <button type="button" className="btn-close" aria-label="Close" onClick={() => setShowConfirm(false)}></button>
-              </div>
-              <div className="modal-body">
-                <p>¿Deseas enviar la orden para la mesa {mesa} con {selectedDishes.length} platillo(s)?</p>
-                <ul>
-                  {selectedDishes.map(dish => (
-                    <li key={dish.id}>{dish.name} - ${dish.price}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowConfirm(false)}>Cancelar</button>
-                <button type="button" className="btn btn-primary" onClick={confirmSendOrder}>Confirmar</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <button className="btn btn-success" onClick={handleSendOrder} disabled={selectedDishes.length === 0}>Enviar Orden</button>
     </div>
   );
 };
