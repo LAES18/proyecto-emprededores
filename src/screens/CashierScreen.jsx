@@ -10,7 +10,10 @@ const CashierScreen = () => {
   useEffect(() => {
     const fetchOrders = () => {
       axios.get('http://localhost:3001/orders?status=servido')
-        .then(response => setOrders(response.data))
+        .then(response => {
+          const filteredOrders = response.data.filter(order => order.status !== 'pagado');
+          setOrders(filteredOrders);
+        })
         .catch(error => console.error('Error fetching orders:', error));
     };
     fetchOrders();

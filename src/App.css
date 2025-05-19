@@ -1,46 +1,170 @@
-body, .waiter-bg, .admin-bg, .kitchen-bg, .cashier-bg, .container-fluid, .container {
-  background: linear-gradient(120deg, #f8b500 0%, #fceabb 100%) !important;
-  min-height: 100vh;
+/* Bootstrap overrides for restaurant theme */
+
+/* General body styling */
+body {
+  background-color: #f8f9fa; /* Light gray for a clean background */
+  font-family: 'Roboto', sans-serif;
 }
 
 #root {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 2rem 0;
-  text-align: center;
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.card, .waiter-card, .admin-card, .kitchen-card, .cashier-card, .list-group-item, .form-control, .form-select {
-  border-radius: 18px !important;
-  border: none !important;
-  background: #fff8e1 !important;
-  box-shadow: 0 4px 16px rgba(184, 92, 0, 0.08) !important;
-}
-
-.card:hover, .waiter-card:hover, .admin-card:hover, .kitchen-card:hover, .cashier-card:hover {
-  transform: translateY(-6px) scale(1.03);
-  box-shadow: 0 8px 24px rgba(184, 92, 0, 0.18) !important;
-}
-
+/* Header styling */
 .waiter-title, .admin-title, .kitchen-title, .cashier-title, .navbar-brand {
-  font-family: 'Merriweather', serif;
-  color: #7c4700;
+  color: #343a40; /* Dark gray for a professional look */
   font-size: 2.5rem;
-  letter-spacing: 1px;
   font-weight: bold;
   margin-bottom: 1.5rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
-
 .waiter-section-title, .admin-section-title, .kitchen-section-title, .cashier-section-title {
   color: #b85c00;
-  font-family: 'Merriweather', serif;
   font-size: 1.7rem;
   margin-bottom: 1.5rem;
+  font-family: 'Merriweather', serif;
 }
 
+/* Form labels */
 .waiter-label, .admin-label, .kitchen-label, .cashier-label {
-  color: #7c4700;
+  color: #495057; /* Subtle gray for labels */
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* ----------- TARJETAS (CARDS) ----------- */
+.card, .waiter-card, .admin-card, .kitchen-card, .cashier-card {
+  position: relative !important;
+  margin: 0 auto !important;
+  border: none;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(120deg, #fff8e1 60%, #ffe7b3 100%) !important;
+  border-radius: 24px !important;
+  padding: 2rem 1.2rem 1.5rem;
+  max-width: 350px;
+  min-width: 300px;
+  min-height: 340px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(184, 92, 0, 0.18);
+}
+
+/* LOGIN CARD CON BARRA MULTICOLOR */
+.card.login-card {
+  overflow: visible;
+  padding: 2.1rem 1.3rem 1.5rem;
+  border-radius: 18px !important;
+  border: 1.5px solid #ffe7b3;
+  box-shadow: 0 4px 16px rgba(184, 92, 0, 0.13);
+  background: linear-gradient(120deg, #fff8e1 60%, #ffe7b3 100%) !important;
+}
+.card.login-card::before {
+  content: '';
+  height: 8px;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  border-radius: 18px 18px 0 0;
+  background: linear-gradient(90deg, #f8b500 0%, #f86c3c 20%, #fceabb 50%, #f8b500 80%, #b85c00 100%);
+}
+
+/* ----------- FORMULARIOS EN TARJETAS ----------- */
+.card form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1.1rem;
+}
+
+.card .form-control {
+  border-radius: 0.25rem;
+  padding: 0.9rem 1.1rem !important;
+  background: #fffbe9 !important;
+  font-size: 1.08rem;
+  border: 1.5px solid #ffe7b3 !important;
+  box-shadow: 0 2px 8px rgba(248, 181, 0, 0.04);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.card .form-control:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.card label, .card .form-label {
+  color: #b85c00;
   font-weight: 600;
+  margin-bottom: 0.3rem;
+  font-size: 1.05rem;
+}
+
+/* ----------- BOTONES ----------- */
+.card .btn, .btn-primary, .waiter-add-btn, .admin-add-btn, .kitchen-add-btn, .cashier-add-btn {
+  background: #b85c00 !important;
+  border: none !important;
+  border-radius: 12px !important;
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 0.8rem 0;
+  box-shadow: 0 2px 8px #ffe7b3;
+  margin: 0.5rem 0;
+}
+.card .btn:hover, .btn-primary:hover {
+  background: #f8b500 !important;
+  color: #fff !important;
+}
+
+.btn-success, .waiter-send-btn, .admin-send-btn, .kitchen-send-btn, .cashier-send-btn {
+  background: #28a745; /* Green for success actions */
+  border: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-top: 10px;
+}
+.btn-success:disabled {
+  background: #bdbdbd !important;
+  color: #fff !important;
+}
+
+.btn-danger, .waiter-remove-btn, .admin-remove-btn, .kitchen-remove-btn, .cashier-remove-btn {
+  background: #dc3545; /* Red for delete actions */
+  border: none !important;
+}
+.btn-danger:hover {
+  background: #c82333; /* Darker red on hover */
+}
+
+/* ----------- TEXTOS Y TÍTULOS ----------- */
+.text-primary {
+  color: #b85c00 !important;
+  font-weight: 600;
+  cursor: pointer;
+}
+.text-primary:hover {
+  color: #f8b500 !important;
+  text-decoration: underline;
+}
+.text-muted {
+  color: #bfa76a !important;
+}
+.text-center {
+  margin-bottom: 1.2rem;
 }
 
 .waiter-badge, .admin-badge, .kitchen-badge, .cashier-badge {
@@ -57,42 +181,12 @@ body, .waiter-bg, .admin-bg, .kitchen-bg, .cashier-bg, .container-fluid, .contai
   font-size: 1.1rem;
 }
 
-.btn-primary, .waiter-add-btn, .admin-add-btn, .kitchen-add-btn, .cashier-add-btn {
-  background: #b85c00 !important;
-  border: none !important;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-.btn-primary:hover, .waiter-add-btn:hover, .admin-add-btn:hover, .kitchen-add-btn:hover, .cashier-add-btn:hover {
-  background: #f8b500 !important;
-  color: #fff !important;
-}
-
-.btn-success, .waiter-send-btn, .admin-send-btn, .kitchen-send-btn, .cashier-send-btn {
-  background: #43a047 !important;
-  border: none !important;
-  font-weight: 600;
-  font-size: 1.1rem;
-  margin-top: 10px;
-}
-.btn-success:disabled, .waiter-send-btn:disabled, .admin-send-btn:disabled, .kitchen-send-btn:disabled, .cashier-send-btn:disabled {
-  background: #bdbdbd !important;
-  color: #fff !important;
-}
-
-.btn-danger, .waiter-remove-btn, .admin-remove-btn, .kitchen-remove-btn, .cashier-remove-btn {
-  background: #e74c3c !important;
-  border: none !important;
-}
-.btn-danger:hover, .waiter-remove-btn:hover, .admin-remove-btn:hover, .kitchen-remove-btn:hover, .cashier-remove-btn:hover {
-  background: #c0392b !important;
-}
-
+/* ----------- NAVBAR Y TABS ----------- */
 .navbar, .nav-tabs {
   background: #fff8e1 !important;
   border-radius: 18px !important;
-  margin-bottom: 2rem;
   box-shadow: 0 2px 8px rgba(184, 92, 0, 0.08) !important;
+  margin-bottom: 2rem;
 }
 
 .nav-link.active, .nav-link:focus, .nav-link:hover {
@@ -101,6 +195,7 @@ body, .waiter-bg, .admin-bg, .kitchen-bg, .cashier-bg, .container-fluid, .contai
   border-radius: 12px !important;
 }
 
+/* ----------- SCROLL PERSONALIZADO ----------- */
 ::-webkit-scrollbar {
   width: 10px;
   background: #fceabb;
@@ -110,6 +205,7 @@ body, .waiter-bg, .admin-bg, .kitchen-bg, .cashier-bg, .container-fluid, .contai
   border-radius: 8px;
 }
 
+/* ----------- MEDIA QUERIES ----------- */
 @media (max-width: 768px) {
   .waiter-title, .admin-title, .kitchen-title, .cashier-title, .navbar-brand {
     font-size: 2rem;
@@ -122,31 +218,10 @@ body, .waiter-bg, .admin-bg, .kitchen-bg, .cashier-bg, .container-fluid, .contai
   }
 }
 
-body, .waiter-title, .admin-title, .kitchen-title, .cashier-title {
-  font-family: 'Merriweather', serif;
-}
-
-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  margin: 0;
-  background: linear-gradient(135deg, #6a11cb, #2575fc);
-  font-family: Arial, sans-serif;
-}
-
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
+/* ----------- LOGO ESTILO ----------- */
 .logo {
   height: 6em;
   padding: 1.5em;
-  will-change: filter;
   transition: filter 300ms;
 }
 .logo:hover {
@@ -157,12 +232,8 @@ body {
 }
 
 @keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -170,206 +241,31 @@ body {
     animation: logo-spin infinite 20s linear;
   }
 }
-
-.card {
-  max-width: 400px;
-  width: 200%;
-  height: 80%;
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  padding: 2rem;
-  text-align: center;
-  transition: transform 0.2s;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  margin: auto;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+/* ----------- ESPACIOS Y MÁRGENES ----------- */
+.container-fluid, .container {
+  padding: 0 1.5rem;
 }
-
-.card img {
-  width: 200px;
-  margin-bottom: 1rem;
-}
-
-.card h3 {
-  margin-bottom: 1.5rem;
-  font-weight: bold;
-  color: #333;
-}
-
-.form-control {
-  border-radius: 4px;
-  padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
-  border: 1px solid #ddd;
-}
-
-.btn-primary {
-  background: #007bff;
-  border: none;
-  border-radius: 4px;
-  padding: 0.75rem 1rem;
-  font-weight: bold;
-  width: 100%;
-  color: #fff;
-}
-
-.btn-primary:hover {
-  background: #0056b3;
-}
-
-.text-muted {
-  font-size: 0.9rem;
-  color: #6c757d;
-}
-
-.text-muted a {
-  color: #007bff;
-  text-decoration: none;
-}
-
-.text-muted a:hover {
-  text-decoration: underline;
-}
-
-.read-the-docs {
-  color: #888;
-}
-
 .container {
-  max-width: 100%;
-  padding: 15px;
+  max-width: 1200px;
 }
 
-/* Restaurante - WaiterScreen estilos personalizados */
+/* Custom spacing */
+.mt-4 {
+  margin-top: 1.5rem !important;
+}
+
+.mb-4 {
+  margin-bottom: 1.5rem !important;
+}
+
+.py-4 {
+  padding-top: 1.5rem !important;
+  padding-bottom: 1.5rem !important;
+}
+
+/* Custom waiter background */
 .waiter-bg {
-  background: linear-gradient(120deg, #f8b500 0%, #fceabb 100%);
-  min-height: 100vh;
-}
-.waiter-title {
-  font-family: 'Merriweather', serif;
-  color: #7c4700;
-  font-size: 2.5rem;
-  letter-spacing: 1px;
-  font-weight: bold;
-}
-.waiter-section-title {
-  color: #b85c00;
-  font-family: 'Merriweather', serif;
-  font-size: 1.7rem;
-  margin-bottom: 1.5rem;
-}
-.waiter-label {
-  color: #7c4700;
-  font-weight: 600;
-}
-.waiter-card {
-  border-radius: 18px;
-  border: none;
-  background: #fff8e1;
-  box-shadow: 0 4px 16px rgba(184, 92, 0, 0.08);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.waiter-card:hover {
-  transform: translateY(-6px) scale(1.03);
-  box-shadow: 0 8px 24px rgba(184, 92, 0, 0.18);
-}
-.waiter-card-img {
-  height: 160px;
-  object-fit: cover;
-  border-radius: 18px 18px 0 0;
-}
-.waiter-dish-name {
-  color: #b85c00;
-  font-weight: bold;
-  font-size: 1.2rem;
-}
-.waiter-badge {
-  background: #f8b500 !important;
-  color: #fff !important;
-  font-size: 0.95rem;
-  font-weight: 600;
-  border-radius: 8px;
-  padding: 0.4em 0.8em;
-}
-.waiter-price {
-  color: #7c4700;
-  font-size: 1.1rem;
-}
-.waiter-add-btn {
-  background: #b85c00;
-  border: none;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-.waiter-add-btn:hover {
-  background: #f8b500;
-  color: #fff;
-}
-.waiter-order-item {
-  background: #fff8e1;
-  color: #7c4700;
-  font-weight: 500;
-}
-.waiter-remove-btn {
-  background: #e74c3c;
-  border: none;
-}
-.waiter-remove-btn:hover {
-  background: #c0392b;
-}
-.waiter-send-btn {
-  background: #43a047;
-  border: none;
-  font-weight: 600;
-  font-size: 1.1rem;
-  margin-top: 10px;
-}
-.waiter-send-btn:disabled {
-  background: #bdbdbd;
-  color: #fff;
-}
-
-@media (max-width: 768px) {
-  .container {
-    padding: 10px;
-  }
-
-  .card {
-    max-width: 90%;
-  }
-
-  .form-control, .btn-primary {
-    max-width: 100%;
-  }
-
-  .waiter-card-img {
-    height: 120px;
-  }
-  .waiter-title {
-    font-size: 2rem;
-  }
-  .waiter-section-title {
-    font-size: 1.2rem;
-  }
-}
-
-@media (max-width: 576px) {
-  .container {
-    padding: 5px;
-  }
-
-  .card {
-    margin: 0 10px;
-  }
-
-  .form-control, .btn-primary {
-    max-width: 100%;
-  }
+  background-color: #ffffff; /* White for a clean and modern look */
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }

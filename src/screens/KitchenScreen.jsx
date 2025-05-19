@@ -7,7 +7,10 @@ const KitchenScreen = () => {
   useEffect(() => {
     const fetchOrders = () => {
       axios.get('http://localhost:3001/orders')
-        .then(response => setOrders(response.data))
+        .then(response => {
+          const filteredOrders = response.data.filter(order => order.status !== 'servido');
+          setOrders(filteredOrders);
+        })
         .catch(error => console.error('Error al obtener las órdenes:', error));
     };
     fetchOrders();

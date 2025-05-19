@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+// Define Spoonacular API key
+const SPOONACULAR_API_KEY = "67ce982a724d41798877cf212f48d0de";
+
 const AdminScreen = () => {
   const [activeTab, setActiveTab] = useState('platillos');
   const [dishes, setDishes] = useState([]);
@@ -21,7 +24,7 @@ const AdminScreen = () => {
 
   useEffect(() => {
     const fetchAll = () => {
-      axios.get('http://localhost:3001/orders')
+      axios.get('http://localhost:3001/orders?status=pagado')
         .then(response => setOrders(response.data))
         .catch(error => console.error('Error al obtener las órdenes:', error));
       axios.get('http://localhost:3001/payments')
@@ -109,15 +112,7 @@ const AdminScreen = () => {
 
   const filteredOrders = orders.filter(order => {
     const statusMatch = orderStatusFilter === 'todos' || order.status === orderStatusFilter;
-    const mesaMatch = mesaFilter === '' || (order.mesa && order.mesa.toString() === mesaFilter);
-    let dateMatch = true;
-    if (startDate) {
-      dateMatch = dateMatch && new Date(order.created_at) >= new Date(startDate);
-    }
-    if (endDate) {
-      dateMatch = dateMatch && new Date(order.created_at) <= new Date(endDate + 'T23:59:59');
-    }
-    return statusMatch && mesaMatch && dateMatch;
+    return statusMatch;
   });
 
   return (

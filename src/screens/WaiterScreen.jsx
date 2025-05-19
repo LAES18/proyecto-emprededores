@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Collapse } from 'react-bootstrap';
 
 const WaiterScreen = () => {
   const [dishes, setDishes] = useState([]);
@@ -7,6 +8,7 @@ const WaiterScreen = () => {
   const [mesa, setMesa] = useState('');
   const [tipo, setTipo] = useState('todos');
   const [filteredDishes, setFilteredDishes] = useState([]);
+  const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
     const fetchDishes = () => {
@@ -71,9 +73,15 @@ const WaiterScreen = () => {
       });
   };
 
+  const calculateTotal = () => {
+    return selectedDishes.reduce((total, dish) => total + dish.price, 0).toFixed(2);
+  };
+
   return (
     <div className="container-fluid py-4 waiter-bg" style={{ minHeight: '100vh' }}>
       <h1 className="mb-4 text-center waiter-title">🍽️ Pantalla del Mesero</h1>
+
+      {/* Filtro por tipo de platillo */}
       <div className="row mb-4 justify-content-center">
         <div className="col-md-3 col-12 mb-2">
           <label className="form-label waiter-label">Filtrar por tipo:</label>
@@ -85,51 +93,73 @@ const WaiterScreen = () => {
           </select>
         </div>
       </div>
-      <h2 className="text-center waiter-section-title mb-3">Carta de Platillos</h2>
-      <div className="row g-4 justify-content-center">
+
+      {/* Lista de platillos */}
+      <div className="row">
         {filteredDishes.map(dish => (
-          <div className="col-12 col-sm-6 col-md-4 col-lg-3 d-flex align-items-stretch" key={dish.id}>
-            <div className="card waiter-card flex-fill text-center p-2" style={{ minWidth: 0, maxWidth: 220, margin: '0 auto', borderRadius: 16, boxShadow: '0 4px 16px rgba(184, 92, 0, 0.12)' }}>
-              {dish.image && (
-                <img src={dish.image} alt={dish.name} className="card-img-top waiter-card-img mx-auto" style={{ height: 110, width: '100%', objectFit: 'cover', borderRadius: 12 }} />
-              )}
-              <div className="card-body p-2 d-flex flex-column justify-content-between">
-                <div>
-                  <h6 className="card-title mb-1 waiter-dish-name" style={{ fontSize: '1.05rem', minHeight: 32 }}>{dish.name}</h6>
-                  <span className="badge waiter-badge mb-1" style={{ fontSize: '0.9rem' }}>{dish.type}</span>
-                  <p className="card-text fw-bold waiter-price mb-1" style={{ fontSize: '1.05rem' }}>${dish.price}</p>
-                </div>
-                <button className="btn btn-primary btn-sm mt-1 waiter-add-btn" style={{ fontSize: '1rem' }} onClick={() => handleSelectDish(dish)}>Agregar</button>
+          <div className="col-md-4 col-sm-6 mb-4" key={dish.id}>
+            <div className="card h-100">
+              <img src={dish.image} className="card-img-top" alt={dish.name} />
+              <div className="card-body">
+                <h5 className="card-title">{dish.name}</h5>
+                <p className="card-text">Tipo: {dish.type}</p>
+                <p className="card-text">Precio: ${dish.price}</p>
+                <button className="btn btn-primary" onClick={() => handleSelectDish(dish)}>Elegir</button>
               </div>
             </div>
           </div>
         ))}
       </div>
-      {/* Carrito flotante mejorado */}
-      <div style={{ position: 'fixed', bottom: 30, right: 30, zIndex: 999 }}>
-        <div className="card waiter-card shadow-lg" style={{ minWidth: 320, maxWidth: 350, borderRadius: 18 }}>
-          <div className="card-body p-3">
-            <h5 className="card-title waiter-section-title mb-3" style={{ fontSize: '1.2rem' }}>🛒 Carrito de Orden</h5>
-            {selectedDishes.length === 0 ? (
-              <div className="text-muted">No hay platillos en el carrito.</div>
-            ) : (
-              <ul className="list-group mb-3">
-                {selectedDishes.map((dish, index) => (
-                  <li className="list-group-item d-flex justify-content-between align-items-center waiter-order-item" key={index}>
-                    <span>{dish.name} <span className="badge bg-info waiter-badge">{dish.type}</span> <span>${dish.price}</span></span>
-                    <button className="btn btn-danger btn-sm waiter-remove-btn" onClick={() => handleRemoveDish(index)}>Quitar</button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <div className="mb-2">
-              <label className="form-label waiter-label">Número de mesa:</label>
-              <input className="form-control" type="text" value={mesa} onChange={e => setMesa(e.target.value)} placeholder="Ej: 5" />
-            </div>
-            <button className="btn btn-success w-100 waiter-send-btn" onClick={handleSendOrder} disabled={selectedDishes.length === 0}>Enviar Orden a Cocina</button>
+
+      {/* Botón para desplegar carrito */}
+      <div className="position-fixed top-0 end-0 m-3">
+        <button
+          className="btn btn-secondary rounded-circle p-3 shadow"
+          onClick={() => setCartOpen(!cartOpen)}
+          aria-controls="cart-collapse"
+          aria-expanded={cartOpen}
+          style={{ fontSize: '1.5rem', width: '70px', height: '70px' }}
+        >
+          🛒
+        </button>
+      </div>
+
+      {/* Carrito de platillos seleccionados */}
+      <Collapse in={cartOpen}>
+        <div id="cart-collapse" className="position-fixed top-0 end-0 mt-5 me-3 p-4 border rounded shadow-sm bg-light" style={{ width: '300px', zIndex: 1050 }}>
+          <h3 className="text-center">🛒 Carrito</h3>
+          {selectedDishes.length === 0 ? (
+            <p className="text-center">No hay platillos seleccionados.</p>
+          ) : (
+            <ul className="list-group mb-3">
+              {selectedDishes.map((dish, index) => (
+                <li className="list-group-item d-flex justify-content-between align-items-center" key={index}>
+                  {dish.name} - ${dish.price}
+                  <button className="btn btn-danger btn-sm" onClick={() => handleRemoveDish(index)}>Eliminar</button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Total */}
+          <div className="text-center mb-3">
+            <h5>Total: ${calculateTotal()}</h5>
+          </div>
+
+          {/* Formulario para enviar la orden */}
+          <div className="mt-4">
+            <label className="form-label waiter-label">Número de mesa:</label>
+            <input
+              type="text"
+              className="form-control mb-3"
+              value={mesa}
+              onChange={e => setMesa(e.target.value)}
+              placeholder="Ingresa el número de mesa"
+            />
+            <button className="btn btn-success w-100" onClick={handleSendOrder}>Enviar Orden</button>
           </div>
         </div>
-      </div>
+      </Collapse>
     </div>
   );
 };

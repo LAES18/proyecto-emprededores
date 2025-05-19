@@ -44,11 +44,10 @@ const initializeDatabase = () => {
     );`,
     `CREATE TABLE IF NOT EXISTS orders (
       id INT AUTO_INCREMENT PRIMARY KEY,
-      dish_id INT NOT NULL,
       user_id INT NOT NULL,
       status ENUM('pendiente', 'en_proceso', 'servido') DEFAULT 'pendiente',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (dish_id) REFERENCES dishes(id),
+      mesa VARCHAR(10),
       FOREIGN KEY (user_id) REFERENCES users(id)
     );`,
     `CREATE TABLE IF NOT EXISTS payments (
@@ -56,6 +55,7 @@ const initializeDatabase = () => {
       order_id INT NOT NULL,
       total DECIMAL(10, 2) NOT NULL,
       paid_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      method VARCHAR(50),
       FOREIGN KEY (order_id) REFERENCES orders(id)
     );`,
   ];
@@ -70,6 +70,19 @@ const initializeDatabase = () => {
 };
 
 initializeDatabase();
+
+// Eliminar columna dish_id de orders si existe (solo la primera vez)
+db.query("SHOW COLUMNS FROM orders LIKE 'dish_id'", (err, results) => {
+  if (!err && results.length > 0) {
+    db.query("ALTER TABLE orders DROP COLUMN dish_id", (err2) => {
+      if (err2) {
+        console.error('No se pudo eliminar dish_id de orders:', err2);
+      } else {
+        console.log('Columna dish_id eliminada de orders');
+      }
+    });
+  }
+});
 
 // Modificaciones para soportar órdenes con múltiples platillos y mesa
 const alterQueries = [
@@ -158,13 +171,19 @@ app.get('/orders', (req, res) => {
   let query = `SELECT o.*, GROUP_CONCAT(d.name) as dishes, GROUP_CONCAT(d.type) as types, GROUP_CONCAT(d.price) as prices FROM orders o
     JOIN order_items oi ON o.id = oi.order_id
     JOIN dishes d ON oi.dish_id = d.id`;
-  if (status) query += ` WHERE o.status = '${status}'`;
+  const params = [];
+
+  if (status) {
+    query += ` WHERE o.status = ?`;
+    params.push(status);
+  }
+
   query += ' GROUP BY o.id ORDER BY o.created_at ASC, o.mesa ASC';
-  db.query(query, (err, results) => {
+
+  db.query(query, params, (err, results) => {
     if (err) {
       res.status(500).send('Error al obtener órdenes');
     } else {
-      // Formatear los platillos como array
       const formatted = results.map(r => ({
         ...r,
         dishes: r.dishes ? r.dishes.split(',').map((name, i) => ({
@@ -216,18 +235,41 @@ app.get('/payments', (req, res) => {
   });
 });
 
+// Endpoint to fetch all users
+app.get('/users', (req, res) => {
+  const query = 'SELECT id, name, email, role FROM users';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching users:', err);
+      res.status(500).json({ error: 'Failed to fetch users' });
+    } else {
+      res.json(results);
+    }
+  });
+});
+
 // Ruta para eliminar un platillo
 app.delete('/dishes/:id', (req, res) => {
   const dishId = req.params.id;
-  const query = 'DELETE FROM dishes WHERE id = ?';
-  db.query(query, [dishId], (err, result) => {
+
+  // Eliminar referencias en la tabla order_items
+  const deleteOrderItemsQuery = 'DELETE FROM order_items WHERE dish_id = ?';
+  db.query(deleteOrderItemsQuery, [dishId], (err) => {
     if (err) {
-      res.status(500).send('Error al eliminar el platillo');
-    } else if (result.affectedRows === 0) {
-      res.status(404).send('Platillo no encontrado');
-    } else {
-      res.status(200).send('Platillo eliminado exitosamente');
+      return res.status(500).send('Error al eliminar referencias del platillo en order_items');
     }
+
+    // Eliminar el platillo después de eliminar las referencias
+    const deleteDishQuery = 'DELETE FROM dishes WHERE id = ?';
+    db.query(deleteDishQuery, [dishId], (err2, result) => {
+      if (err2) {
+        return res.status(500).send('Error al eliminar el platillo');
+      } else if (result.affectedRows === 0) {
+        return res.status(404).send('Platillo no encontrado');
+      } else {
+        return res.status(200).send('Platillo eliminado exitosamente');
+      }
+    });
   });
 });
 
