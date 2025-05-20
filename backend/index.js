@@ -273,15 +273,64 @@ app.delete('/dishes/:id', (req, res) => {
   });
 });
 
+// Actualizar la lógica del backend para manejar el estado 'pagado'
 app.post('/payments', (req, res) => {
-  const { order_id, total, method } = req.body;
-  db.query('INSERT INTO payments (order_id, total, method) VALUES (?, ?, ?)', [order_id, total, method], (err) => {
-    if (err) {
-      res.status(500).send('Error al registrar pago');
-    } else {
-      res.status(200).send('Pago registrado exitosamente');
+  const payments = req.body;
+
+  console.log('Received Payments:', payments); // Debugging log
+
+  if (!Array.isArray(payments) || payments.length === 0) {
+    console.error('No se enviaron pagos'); // Debugging log
+    return res.status(400).send('No se enviaron pagos');
+  }
+
+  // Validar que cada pago tenga las claves necesarias
+  for (const payment of payments) {
+    if (!payment.order_id || !payment.total || !payment.method) {
+      console.error('Datos de pago inválidos:', payment); // Debugging log
+      return res.status(400).send('Datos de pago inválidos');
     }
+  }
+
+  const paymentQueries = payments.map(payment => {
+    return new Promise((resolve, reject) => {
+      const { order_id, total, method } = payment;
+      console.log('Processing Payment:', payment); // Debugging log
+      db.query('INSERT INTO payments (order_id, total, method) VALUES (?, ?, ?)', [order_id, total, method], (err) => {
+        if (err) {
+          console.error('Error al insertar pago:', err, 'Payment Data:', payment); // Debugging log
+          reject(err);
+        } else {
+          // Cambiar el estado de la orden a 'pagado'
+          db.query('UPDATE orders SET status = ? WHERE id = ?', ['pagado', order_id], (err2) => {
+            if (err2) {
+              console.error('Error al actualizar estado de orden:', err2, 'Order ID:', order_id); // Debugging log
+              reject(err2);
+            } else {
+              resolve();
+            }
+          });
+        }
+      });
+    });
   });
+
+  Promise.all(paymentQueries)
+    .then(() => res.status(200).send('Pagos procesados exitosamente'))
+    .catch(err => {
+      console.error('Error al procesar pagos:', err); // Debugging log
+      res.status(500).send('Error al procesar pagos');
+    });
+});
+
+// Actualizar la inicialización de la base de datos para incluir 'pagado' en el tipo ENUM de 'status'
+const alterStatusEnum = `ALTER TABLE orders MODIFY COLUMN status ENUM('pendiente', 'en_proceso', 'servido', 'pagado') DEFAULT 'pendiente';`;
+db.query(alterStatusEnum, (err) => {
+  if (err) {
+    console.error("Error al actualizar el tipo ENUM de 'status' en la tabla 'orders':", err);
+  } else {
+    console.log("Tipo ENUM de 'status' en la tabla 'orders' actualizado correctamente.");
+  }
 });
 
 // Iniciar servidor

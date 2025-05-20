@@ -269,3 +269,109 @@ body {
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+
+/* CashierScreen styles */
+.cashier-container {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.cashier-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.cashier-section-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 15px;
+}
+
+.cashier-orders-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px 0;
+}
+
+.cashier-order-item {
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background-color: #fff;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.3s;
+}
+
+.cashier-order-item:hover {
+  background-color: #f0f0f0;
+}
+
+.cashier-order-item.selected {
+  background-color: #d1e7dd;
+  border-color: #0f5132;
+}
+
+.cashier-dishes-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0;
+}
+
+.cashier-order-total {
+  font-weight: bold;
+  color: #333;
+}
+
+.cashier-summary {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: right;
+}
+
+.cashier-payment-method {
+  margin-bottom: 20px;
+}
+
+.cashier-payment-method label {
+  font-weight: bold;
+  color: #555;
+  margin-right: 10px;
+}
+
+.cashier-pay-button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #fff;
+  background-color: #28a745;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.cashier-pay-button:hover {
+  background-color: #218838;
+}
+
+.cashier-error {
+  color: #dc3545;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
