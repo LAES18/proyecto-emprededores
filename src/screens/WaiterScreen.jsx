@@ -60,7 +60,6 @@ const WaiterScreen = () => {
       dishes: selectedDishes.map(dish => ({ dish_id: dish.id })),
       user_id: 1, // Reemplazar con el usuario real si tienes auth
       mesa,
-      // El estado inicial de la orden será 'pendiente' por defecto en el backend
     };
     axios.post('http://localhost:3001/orders', orderData)
       .then(() => {

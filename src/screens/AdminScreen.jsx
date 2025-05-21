@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 // Define Spoonacular API key
 const SPOONACULAR_API_KEY = "67ce982a724d41798877cf212f48d0de";
@@ -25,7 +28,9 @@ const AdminScreen = () => {
   const [spoonacularTypeSelect, setSpoonacularTypeSelect] = useState({ show: false, item: null });
   const [selectedType, setSelectedType] = useState('desayuno');
   const [showAddUserForm, setShowAddUserForm] = useState(false);
-
+  // --- NUEVO: Filtro de reporte de pagos ---
+  const [paymentReportType, setPaymentReportType] = useState('dia'); // dia, semana, mes
+  
   useEffect(() => {
     const fetchAll = () => {
       axios.get('http://localhost:3001/orders?status=pagado')
@@ -88,13 +93,19 @@ const AdminScreen = () => {
   };
 
   const handleEditUser = (userId, updatedUser) => {
-    if (!updatedUser.name || !updatedUser.email || !updatedUser.password || !updatedUser.role) {
+    if (!updatedUser.name || !updatedUser.email || !updatedUser.role) {
       alert("Por favor, completa todos los campos antes de editar el usuario.");
       return;
     }
-    axios.put(`http://localhost:3001/users/${userId}`, updatedUser)
+    // Si el campo password está vacío, no lo envíes (el backend debe manejar esto)
+    const userToSend = { ...updatedUser };
+    if (!userToSend.password) {
+      delete userToSend.password;
+    }
+    axios.put(`http://localhost:3001/users/${userId}`, userToSend)
       .then(() => {
         setUsers(users.map(user => user.id === userId ? { ...user, ...updatedUser } : user));
+        setEditingUser(null);
       })
       .catch(error => console.error('Error al editar el usuario:', error));
   };
@@ -134,6 +145,25 @@ const AdminScreen = () => {
     }
   };
 
+  const handleDownloadInvoice = (order, payment) => {
+    const doc = new jsPDF();
+    let y = 10;
+    doc.setFontSize(16);
+    doc.text('Factura', 10, y);
+    y += 10;
+    doc.setFontSize(12);
+    doc.text(`Orden #${order.id} - Mesa: ${order.mesa || 'N/A'}`, 10, y);
+    y += 8;
+    order.dishes.forEach(dish => {
+      doc.text(`${dish.name} (${dish.type}) - $${dish.price}`, 14, y);
+      y += 7;
+    });
+    doc.text(`Total: $${payment.total}`, 14, y);
+    y += 8;
+    doc.text(`Método de pago: ${payment.method}`, 10, y);
+    doc.save(`factura_orden_${order.id}.pdf`);
+  };
+
   const filteredOrders = orders.filter(order => {
     const statusMatch = orderStatusFilter === 'todos' || order.status === orderStatusFilter;
     const mesaMatch = !mesaFilter || (order.mesa && order.mesa.toString().includes(mesaFilter));
@@ -146,6 +176,69 @@ const AdminScreen = () => {
     }
     return statusMatch && mesaMatch && fechaMatch;
   });
+  // Función para filtrar pagos por día, semana o mes
+  function filterPayments(payments, type) {
+    const now = new Date();
+    return payments.filter(payment => {
+      const paidAt = new Date(payment.paid_at);
+      if (type === 'dia') {
+        return paidAt.toDateString() === now.toDateString();
+      } else if (type === 'semana') {
+        const firstDayOfWeek = new Date(now);
+        firstDayOfWeek.setDate(now.getDate() - now.getDay());
+        const lastDayOfWeek = new Date(firstDayOfWeek);
+        lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
+        return paidAt >= firstDayOfWeek && paidAt <= lastDayOfWeek;
+      } else if (type === 'mes') {
+        return paidAt.getMonth() === now.getMonth() && paidAt.getFullYear() === now.getFullYear();
+      }
+      return true;
+    });
+  }
+
+  const filteredPayments = filterPayments(payments, paymentReportType);
+  const totalPagos = filteredPayments.reduce((sum, p) => sum + parseFloat(p.total), 0);
+
+  // --- NUEVO: Exportar pagos a PDF y Excel ---
+  const exportPaymentsToPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text('Reporte de Pagos', 14, 18);
+    doc.setFontSize(11);
+    doc.text(`Periodo: ${paymentReportType.charAt(0).toUpperCase() + paymentReportType.slice(1)}`, 14, 28);
+    autoTable(doc, {
+      startY: 36,
+      head: [['ID', 'Orden', 'Total', 'Método', 'Fecha']],
+      body: filteredPayments.map(p => [
+        p.id,
+        p.order_id,
+        `$${parseFloat(p.total).toFixed(2)}`,
+        p.method,
+        p.paid_at ? p.paid_at.substring(0, 19).replace('T', ' ') : ''
+      ]),
+    });
+    doc.text(`Total: $${totalPagos.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 10);
+    doc.save('reporte_pagos.pdf');
+  };
+
+  const exportPaymentsToExcel = () => {
+    const wsData = [
+      ['ID', 'Orden', 'Total', 'Método', 'Fecha'],
+      ...filteredPayments.map(p => [
+        p.id,
+        p.order_id,
+        parseFloat(p.total),
+        p.method,
+        p.paid_at ? p.paid_at.substring(0, 19).replace('T', ' ') : ''
+      ]),
+      [],
+      ['Total', '', totalPagos, '', '']
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Pagos');
+    XLSX.writeFile(wb, 'reporte_pagos.xlsx');
+  };
 
   return (
     <div className="container mt-5">
@@ -318,7 +411,7 @@ const AdminScreen = () => {
               <input
                 type="password"
                 className="form-control mb-2"
-                placeholder="Contraseña"
+                placeholder="Contraseña (dejar en blanco para no cambiar)"
                 value={editingUser.password || ''}
                 onChange={(e) => setEditingUser({ ...editingUser, password: e.target.value })}
               />
@@ -385,12 +478,35 @@ const AdminScreen = () => {
       {activeTab === 'pagos' && (
         <div>
           <h2>Pagos</h2>
+          {/* Filtro de reporte */}
+          <div className="mb-3 d-flex align-items-center gap-3">
+            <label className="form-label mb-0">Ver reporte por:</label>
+            <select className="form-select w-auto" value={paymentReportType} onChange={e => setPaymentReportType(e.target.value)}>
+              <option value="dia">Día</option>
+              <option value="semana">Semana</option>
+              <option value="mes">Mes</option>
+            </select>
+            <span className="ms-auto fw-bold">Total: ${totalPagos.toFixed(2)}</span>
+          </div>
+          <div className="mb-3 d-flex gap-2">
+            <button className="btn btn-outline-success" onClick={exportPaymentsToExcel}>Exportar a Excel</button>
+            <button className="btn btn-outline-primary" onClick={exportPaymentsToPDF}>Exportar a PDF</button>
+          </div>
           <ul className="list-group mb-3">
-            {payments.map(payment => (
-              <li className="list-group-item" key={payment.id}>
-                Pago #{payment.id} - Orden #{payment.order_id} - Total: ${payment.total} - Método: {payment.method}
-              </li>
-            ))}
+            {filteredPayments.length === 0 && <li className="list-group-item">No hay pagos en este periodo.</li>}
+            {filteredPayments.map(payment => {
+              const order = orders.find(o => o.id === payment.order_id);
+              return (
+                <li className="list-group-item" key={payment.id}>
+                  Pago #{payment.id} - Orden #{payment.order_id} - Total: ${payment.total} - Método: {payment.method} - Fecha: {payment.paid_at && payment.paid_at.substring(0, 10)}
+                  {order && (
+                    <button className="btn btn-sm btn-primary ms-2" onClick={() => handleDownloadInvoice(order, payment)}>
+                      Descargar Factura
+                    </button>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
