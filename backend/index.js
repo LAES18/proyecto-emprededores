@@ -15,11 +15,11 @@ app.use(bodyParser.json());
 
 // Conexión a la base de datos usando variables de entorno para compatibilidad Railway/local
 const db = mysql.createConnection({
-  host: process.env.MYSQLHOST || 'mysql.railway.internal',
+  host: process.env.MYSQLHOST || 'tramway.proxy.rlwy.net',
   user: process.env.MYSQLUSER || 'root',
   password: process.env.MYSQLPASSWORD || ':biNuurNEajxKdCHkUdFbiXgJyLoEEjDm',
   database: process.env.MYSQLDATABASE || 'railway',
-  port: process.env.MYSQLPORT ? parseInt(process.env.MYSQLPORT) : 3306
+  port: process.env.MYSQLPORT ? parseInt(process.env.MYSQLPORT) : 53929
 });
 
 db.connect((err) => {
