@@ -18,7 +18,7 @@ const db = mysql.createConnection({
   host: process.env.MYSQLHOST || 'tramway.proxy.rlwy.net',
   user: process.env.MYSQLUSER || 'root',
   password: process.env.MYSQLPASSWORD || ':biNuurNEajxKdCHkUdFbiXgJyLoEEjDm',
-  database: process.env.MYSQLDATABASE || 'comedor_system',
+  database: process.env.MYSQLDATABASE || 'railway',
   port: process.env.MYSQLPORT ? parseInt(process.env.MYSQLPORT) : 53929
 });
 
