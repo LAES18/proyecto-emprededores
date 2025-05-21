@@ -73,23 +73,23 @@ const CashierScreen = () => {
 
   const handleDownloadInvoice = (ordersToPrint) => {
     const ticketWidth = 164; // 58mm aprox
-    const margin = 8;
-    const lineHeight = 13;
+    const margin = 10;
+    const lineHeight = 16;
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'pt',
-      format: [ticketWidth, 700]
+      format: [ticketWidth, 900]
     });
-    let y = margin + 6;
-    doc.setFontSize(13);
+    let y = margin + 8;
+    doc.setFontSize(14);
     doc.text('RESTAURANTE', ticketWidth / 2, y, { align: 'center' });
     y += lineHeight;
     doc.setFontSize(11);
     doc.text('Factura', ticketWidth / 2, y, { align: 'center' });
-    y += lineHeight - 2;
-    doc.setLineWidth(0.5);
+    y += lineHeight;
+    doc.setLineWidth(0.7);
     doc.line(margin, y, ticketWidth - margin, y);
-    y += 6;
+    y += 8;
     ordersToPrint.forEach(order => {
       doc.setFontSize(10.5);
       doc.text(`Orden #${order.id}  Mesa: ${order.mesa || 'N/A'}`, margin, y);
@@ -97,12 +97,12 @@ const CashierScreen = () => {
       order.dishes.forEach(dish => {
         doc.text(`${dish.name} (${dish.type})`, margin + 4, y);
         doc.text(`$${parseFloat(dish.price).toFixed(2)}`, ticketWidth - margin - 8, y, { align: 'right' });
-        y += lineHeight - 2;
+        y += lineHeight;
       });
-      y += 2;
+      y += 4;
       doc.setLineWidth(0.3);
       doc.line(margin, y, ticketWidth - margin, y);
-      y += 7;
+      y += 10;
       doc.setFont('helvetica', 'bold');
       doc.text(
         `Total: $${order.dishes.reduce((sum, dish) => sum + parseFloat(dish.price || 0), 0).toFixed(2)}`,
@@ -110,11 +110,11 @@ const CashierScreen = () => {
         y
       );
       doc.setFont('helvetica', 'normal');
-      y += lineHeight;
+      y += lineHeight + 2;
     });
     doc.setFontSize(10.5);
     doc.text(`Método de pago: ${ordersToPrint[0]?.paymentMethod || ''}`, margin, y);
-    y += lineHeight - 2;
+    y += lineHeight;
     doc.setFontSize(11);
     doc.setTextColor(100, 100, 100);
     doc.text('¡Gracias por su compra!', ticketWidth / 2, y, { align: 'center' });
