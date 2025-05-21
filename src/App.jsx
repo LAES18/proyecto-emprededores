@@ -62,9 +62,9 @@ function LoginForm({ toggleForm, setRole }) {
     <form onSubmit={handleLogin}>
       <h3 className="text-center">Login</h3>
       <div className="mb-3">
-        <label className="form-label">Email</label>
+        <label className="form-label">Email o Nombre de Usuario</label>
         <input
-          type="email"
+          type="text"
           className="form-control"
           value={email}
           onChange={(e) => setEmail(e.target.value)}

@@ -113,20 +113,39 @@ db.query(createOrderItems, (err) => {
 // Rutas para manejar roles y autenticación
 app.post('/register', (req, res) => {
   const { name, email, password, role } = req.body;
+
+  // Validar que todos los campos estén presentes
+  if (!name || !email || !password || !role) {
+    return res.status(400).send('Todos los campos son obligatorios');
+  }
+
+  // Validar formato del correo electrónico
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).send('Formato de correo electrónico inválido');
+  }
+
   const query = 'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)';
   db.query(query, [name, email, password, role], (err) => {
     if (err) {
-      res.status(500).send('Error al registrar usuario');
-    } else {
-      res.status(200).send('Usuario registrado exitosamente');
+      console.error('Error al registrar usuario:', err);
+
+      // Manejar errores específicos de la base de datos
+      if (err.code === 'ER_DUP_ENTRY') {
+        return res.status(400).send('El correo electrónico ya está registrado');
+      }
+
+      return res.status(500).send('Error al registrar usuario');
     }
+
+    res.status(200).send('Usuario registrado exitosamente');
   });
 });
 
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
-  const query = 'SELECT * FROM users WHERE email = ? AND password = ?';
-  db.query(query, [email, password], (err, results) => {
+  const query = 'SELECT * FROM users WHERE (email = ? OR name = ?) AND password = ?';
+  db.query(query, [email, email, password], (err, results) => {
     if (err || results.length === 0) {
       res.status(401).send('Credenciales inválidas');
     } else {
@@ -202,6 +221,7 @@ app.post('/orders', (req, res) => {
   if (!dishes || !Array.isArray(dishes) || dishes.length === 0) {
     return res.status(400).send('No se enviaron platillos');
   }
+  // Revertir el cambio para que el estado inicial no sea 'servido'
   const orderQuery = 'INSERT INTO orders (user_id, mesa) VALUES (?, ?)';
   db.query(orderQuery, [user_id, mesa], (err, result) => {
     if (err) return res.status(500).send('Error al crear orden');
@@ -273,6 +293,23 @@ app.delete('/dishes/:id', (req, res) => {
   });
 });
 
+// Ruta para eliminar un usuario
+app.delete('/users/:id', (req, res) => {
+  const userId = req.params.id;
+
+  const deleteUserQuery = 'DELETE FROM users WHERE id = ?';
+  db.query(deleteUserQuery, [userId], (err, result) => {
+    if (err) {
+      console.error('Error al eliminar usuario:', err);
+      return res.status(500).send('Error al eliminar usuario');
+    } else if (result.affectedRows === 0) {
+      return res.status(404).send('Usuario no encontrado');
+    } else {
+      return res.status(200).send('Usuario eliminado exitosamente');
+    }
+  });
+});
+
 // Actualizar la lógica del backend para manejar el estado 'pagado'
 app.post('/payments', (req, res) => {
   const payments = req.body;
@@ -331,6 +368,29 @@ db.query(alterStatusEnum, (err) => {
   } else {
     console.log("Tipo ENUM de 'status' en la tabla 'orders' actualizado correctamente.");
   }
+});
+
+// Ruta para actualizar detalles de usuario por ID
+app.put('/users/:id', (req, res) => {
+  const { name, email, password, role } = req.body;
+  const userId = req.params.id;
+
+  // Validar que todos los campos estén presentes
+  if (!name || !email || !password || !role) {
+    return res.status(400).send('Todos los campos son obligatorios');
+  }
+
+  const query = 'UPDATE users SET name = ?, email = ?, password = ?, role = ? WHERE id = ?';
+  db.query(query, [name, email, password, role, userId], (err, result) => {
+    if (err) {
+      console.error('Error al actualizar usuario:', err);
+      res.status(500).send('Error al actualizar usuario');
+    } else if (result.affectedRows === 0) {
+      res.status(404).send('Usuario no encontrado');
+    } else {
+      res.status(200).send('Usuario actualizado exitosamente');
+    }
+  });
 });
 
 // Iniciar servidor

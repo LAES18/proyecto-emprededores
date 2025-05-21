@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const KitchenScreen = () => {
   const [orders, setOrders] = useState([]);
@@ -8,7 +9,8 @@ const KitchenScreen = () => {
     const fetchOrders = () => {
       axios.get('http://localhost:3001/orders')
         .then(response => {
-          const filteredOrders = response.data.filter(order => order.status !== 'servido');
+          // Mostrar solo órdenes pendientes o en_proceso
+          const filteredOrders = response.data.filter(order => order.status === 'pendiente' || order.status === 'en_proceso');
           setOrders(filteredOrders);
         })
         .catch(error => console.error('Error al obtener las órdenes:', error));
@@ -28,16 +30,16 @@ const KitchenScreen = () => {
   };
 
   return (
-    <div className="container mt-4">
-      <h1 className="mb-4">Pantalla de la Cocina</h1>
-      <h2>Órdenes pendientes</h2>
+    <div className="container mt-5">
+      <h1 className="text-center mb-4">👨‍🍳 Pantalla de la Cocina</h1>
+
       <div className="row">
         {orders.map(order => (
-          <div className="col-md-6 mb-3" key={order.id}>
+          <div className="col-md-6 mb-4" key={order.id}>
             <div className="card">
               <div className="card-body">
                 <h5 className="card-title">Orden #{order.id} - Mesa {order.mesa || 'N/A'}</h5>
-                <ul>
+                <ul className="list-unstyled">
                   {order.dishes && order.dishes.map((dish, i) => (
                     <li key={i}>{dish.name} ({dish.type}) - ${dish.price}</li>
                   ))}

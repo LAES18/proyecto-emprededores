@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 // Define Spoonacular API key
 const SPOONACULAR_API_KEY = "67ce982a724d41798877cf212f48d0de";
@@ -11,6 +12,8 @@ const AdminScreen = () => {
   const [orders, setOrders] = useState([]);
   const [payments, setPayments] = useState([]);
   const [newDish, setNewDish] = useState({ name: '', price: '', type: 'desayuno' });
+  const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: '' });
+  const [editingUser, setEditingUser] = useState(null);
   const [orderStatusFilter, setOrderStatusFilter] = useState('todos');
   const [mesaFilter, setMesaFilter] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -21,6 +24,7 @@ const AdminScreen = () => {
   const [errorSpoonacular, setErrorSpoonacular] = useState("");
   const [spoonacularTypeSelect, setSpoonacularTypeSelect] = useState({ show: false, item: null });
   const [selectedType, setSelectedType] = useState('desayuno');
+  const [showAddUserForm, setShowAddUserForm] = useState(false);
 
   useEffect(() => {
     const fetchAll = () => {
@@ -60,19 +64,39 @@ const AdminScreen = () => {
   };
 
   const handleAddUser = (newUser) => {
+    if (!newUser.name || !newUser.email || !newUser.password || !newUser.role) {
+      alert("Por favor, completa todos los campos antes de agregar un usuario.");
+      return;
+    }
     axios.post('http://localhost:3001/register', newUser)
-      .then(response => {
-        setUsers([...users, response.data]);
+      .then(() => {
+        setUsers([...users, newUser]);
+        setNewUser({ name: '', email: '', password: '', role: '' }); // Limpiar formulario
       })
       .catch(error => console.error('Error al agregar el usuario:', error));
   };
 
   const handleDeleteUser = (userId) => {
+    if (!window.confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
+      return;
+    }
     axios.delete(`http://localhost:3001/users/${userId}`)
       .then(() => {
         setUsers(users.filter(user => user.id !== userId));
       })
       .catch(error => console.error('Error al eliminar el usuario:', error));
+  };
+
+  const handleEditUser = (userId, updatedUser) => {
+    if (!updatedUser.name || !updatedUser.email || !updatedUser.password || !updatedUser.role) {
+      alert("Por favor, completa todos los campos antes de editar el usuario.");
+      return;
+    }
+    axios.put(`http://localhost:3001/users/${userId}`, updatedUser)
+      .then(() => {
+        setUsers(users.map(user => user.id === userId ? { ...user, ...updatedUser } : user));
+      })
+      .catch(error => console.error('Error al editar el usuario:', error));
   };
 
   const buscarPlatillosSpoonacular = async () => {
@@ -112,12 +136,21 @@ const AdminScreen = () => {
 
   const filteredOrders = orders.filter(order => {
     const statusMatch = orderStatusFilter === 'todos' || order.status === orderStatusFilter;
-    return statusMatch;
+    const mesaMatch = !mesaFilter || (order.mesa && order.mesa.toString().includes(mesaFilter));
+    let fechaMatch = true;
+    if (startDate) {
+      fechaMatch = fechaMatch && order.created_at && order.created_at >= startDate;
+    }
+    if (endDate) {
+      fechaMatch = fechaMatch && order.created_at && order.created_at <= endDate + ' 23:59:59';
+    }
+    return statusMatch && mesaMatch && fechaMatch;
   });
 
   return (
-    <div className="container mt-4">
-      <h1 className="mb-4">Pantalla del Administrador</h1>
+    <div className="container mt-5">
+      <h1 className="text-center mb-4">⚙️ Pantalla del Administrador</h1>
+
       <ul className="nav nav-tabs mb-4">
         <li className="nav-item">
           <button className={`nav-link${activeTab === 'platillos' ? ' active' : ''}`} onClick={() => setActiveTab('platillos')}>Gestión de Platillos</button>
@@ -132,6 +165,7 @@ const AdminScreen = () => {
           <button className={`nav-link${activeTab === 'pagos' ? ' active' : ''}`} onClick={() => setActiveTab('pagos')}>Pagos</button>
         </li>
       </ul>
+
       {activeTab === 'platillos' && (
         <div>
           <h2>Gestión de Platillos</h2>
@@ -236,12 +270,12 @@ const AdminScreen = () => {
             <input className="form-control mb-2" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
           </div>
           <ul className="list-group mb-3">
-            {filteredOrders.map(order => (
-              <li className="list-group-item" key={order.id}>
+            {filteredOrders.map((order, index) => (
+              <li className="list-group-item" key={order.id || index}>
                 Orden #{order.id} - Mesa {order.mesa || 'N/A'} - Estado: {order.status}
                 <ul>
-                  {order.dishes && order.dishes.map((dish, i) => (
-                    <li key={i}>{dish.name} ({dish.type}) - ${dish.price}</li>
+                  {order.dishes && order.dishes.map((dish, dishIndex) => (
+                    <li key={dishIndex}>{dish.name} ({dish.type}) - ${dish.price}</li>
                   ))}
                 </ul>
               </li>
@@ -252,11 +286,100 @@ const AdminScreen = () => {
       {activeTab === 'usuarios' && (
         <div>
           <h2>Gestión de Usuarios</h2>
-          <ul className="list-group">
-            {users.map(user => (
-              <li className="list-group-item" key={user.id}>{user.name} - {user.role}</li>
+          <ul className="list-group mb-3">
+            {users.map((user, index) => (
+              <li className="list-group-item d-flex justify-content-between align-items-center" key={user.id || index}>
+                {user.name} - {user.role}
+                <div>
+                  <button className="btn btn-warning btn-sm me-2" onClick={() => setEditingUser(user)}>Editar</button>
+                  <button className="btn btn-danger btn-sm" onClick={() => handleDeleteUser(user.id)}>Eliminar</button>
+                </div>
+              </li>
             ))}
           </ul>
+
+          {editingUser && editingUser.id && (
+            <div className="mb-3">
+              <h3>Editar Usuario</h3>
+              <input
+                type="text"
+                className="form-control mb-2"
+                placeholder="Nombre"
+                value={editingUser.name || ''}
+                onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
+              />
+              <input
+                type="email"
+                className="form-control mb-2"
+                placeholder="Email"
+                value={editingUser.email || ''}
+                onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
+              />
+              <input
+                type="password"
+                className="form-control mb-2"
+                placeholder="Contraseña"
+                value={editingUser.password || ''}
+                onChange={(e) => setEditingUser({ ...editingUser, password: e.target.value })}
+              />
+              <select
+                className="form-select mb-2"
+                value={editingUser.role || ''}
+                onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
+              >
+                <option value="">Seleccionar Rol</option>
+                <option value="administrador">Administrador</option>
+                <option value="mesero">Mesero</option>
+                <option value="cocina">Cocinero</option>
+                <option value="cobrador">Cobrador</option>
+              </select>
+              <button className="btn btn-primary me-2" onClick={() => handleEditUser(editingUser.id, editingUser)}>Guardar Cambios</button>
+              <button className="btn btn-secondary" onClick={() => setEditingUser(null)}>Cancelar</button>
+            </div>
+          )}
+
+          <button className="btn btn-success mb-3" onClick={() => setShowAddUserForm(!showAddUserForm)}>
+            {showAddUserForm ? 'Ocultar Formulario' : 'Agregar Usuario'}
+          </button>
+
+          {showAddUserForm && (
+            <div className="mb-3">
+              <h3>Agregar Nuevo Usuario</h3>
+              <input
+                type="text"
+                className="form-control mb-2"
+                placeholder="Nombre"
+                value={newUser.name}
+                onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+              />
+              <input
+                type="email"
+                className="form-control mb-2"
+                placeholder="Email"
+                value={newUser.email}
+                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+              />
+              <input
+                type="password"
+                className="form-control mb-2"
+                placeholder="Contraseña"
+                value={newUser.password}
+                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+              />
+              <select
+                className="form-select mb-2"
+                value={newUser.role}
+                onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+              >
+                <option value="">Seleccionar Rol</option>
+                <option value="administrador">Administrador</option>
+                <option value="mesero">Mesero</option>
+                <option value="cocina">Cocinero</option>
+                <option value="cobrador">Cobrador</option>
+              </select>
+              <button className="btn btn-primary" onClick={() => handleAddUser(newUser)}>Agregar Usuario</button>
+            </div>
+          )}
         </div>
       )}
       {activeTab === 'pagos' && (
