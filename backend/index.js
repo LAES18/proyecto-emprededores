@@ -1,21 +1,24 @@
+require('dotenv').config(); // Carga variables de entorno desde .env
+
 const express = require('express');
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 
 const app = express();
-const port = 53929;
+const port = process.env.PORT || 53929;
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
-// Conexión a la base de datos
+// Conexión a la base de datos usando variables de entorno para compatibilidad Railway/local
 const db = mysql.createConnection({
-  host: 'tramway.proxy.rlwy.net',
-  user: 'root',
-  password: 'biNuurNEajxKdCHkUdFbiXgJyLoEEjDm',
-  database: 'comedor_system',
+  host: process.env.MYSQLHOST || 'tramway.proxy.rlwy.net',
+  user: process.env.MYSQLUSER || 'root',
+  password: process.env.MYSQLPASSWORD || ':biNuurNEajxKdCHkUdFbiXgJyLoEEjDm',
+  database: process.env.MYSQLDATABASE || 'comedor_system',
+  port: process.env.MYSQLPORT ? parseInt(process.env.MYSQLPORT) : 53929
 });
 
 db.connect((err) => {
@@ -23,7 +26,7 @@ db.connect((err) => {
     console.error('Error al conectar con MySQL:', err);
     return;
   }
-  console.log('Conexión exitosa a MySQL');
+  console.log('Conexión exitosa a MySQL Railway');
 });
 
 // Inicializar base de datos
@@ -110,34 +113,47 @@ db.query(createOrderItems, (err) => {
   }
 });
 
+// Asegura que el ENUM de 'role' en users sea correcto al iniciar el backend
+const alterRoleEnum = `ALTER TABLE users MODIFY COLUMN role ENUM('administrador', 'mesero', 'cocina', 'cobrador') NOT NULL;`;
+db.query(alterRoleEnum, (err) => {
+  if (err) {
+    console.error("Error al actualizar el tipo ENUM de 'role' en la tabla 'users':", err);
+  } else {
+    console.log("Tipo ENUM de 'role' en la tabla 'users' actualizado correctamente.");
+  }
+});
+
 // Rutas para manejar roles y autenticación
 app.post('/register', (req, res) => {
   const { name, email, password, role } = req.body;
 
   // Validar que todos los campos estén presentes
   if (!name || !email || !password || !role) {
-    return res.status(400).send('Todos los campos son obligatorios');
+    return res.status(400).json({ error: 'Todos los campos son obligatorios' });
   }
 
   // Validar formato del correo electrónico
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    return res.status(400).send('Formato de correo electrónico inválido');
+    return res.status(400).json({ error: 'Formato de correo electrónico inválido' });
+  }
+
+  // Validar que el rol sea uno de los permitidos
+  const allowedRoles = ['administrador', 'mesero', 'cocina', 'cobrador'];
+  if (!allowedRoles.includes(role)) {
+    return res.status(400).json({ error: `Rol inválido. Debe ser uno de: ${allowedRoles.join(', ')}` });
   }
 
   const query = 'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)';
   db.query(query, [name, email, password, role], (err) => {
     if (err) {
       console.error('Error al registrar usuario:', err);
-
-      // Manejar errores específicos de la base de datos
       if (err.code === 'ER_DUP_ENTRY') {
-        return res.status(400).send('El correo electrónico ya está registrado');
+        return res.status(400).json({ error: 'El correo electrónico ya está registrado', details: err.sqlMessage });
       }
-
-      return res.status(500).send('Error al registrar usuario');
+      // Mostrar el error SQL exacto para depuración
+      return res.status(500).json({ error: 'Error al registrar usuario', details: err.sqlMessage || err.message || err });
     }
-
     res.status(200).send('Usuario registrado exitosamente');
   });
 });
@@ -384,16 +400,15 @@ app.put('/users/:id', (req, res) => {
   db.query(query, [name, email, password, role, userId], (err, result) => {
     if (err) {
       console.error('Error al actualizar usuario:', err);
-      res.status(500).send('Error al actualizar usuario');
+      return res.status(500).send('Error al actualizar usuario');
     } else if (result.affectedRows === 0) {
-      res.status(404).send('Usuario no encontrado');
+      return res.status(404).send('Usuario no encontrado');
     } else {
-      res.status(200).send('Usuario actualizado exitosamente');
+      return res.status(200).send('Usuario actualizado exitosamente');
     }
   });
 });
 
-// Iniciar servidor
 app.listen(port, () => {
   console.log(`Servidor corriendo en http://localhost:${port}`);
 });

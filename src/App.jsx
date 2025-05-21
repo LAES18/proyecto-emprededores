@@ -4,6 +4,13 @@ import './App.css';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+// Detecta el entorno y configura la URL base del backend
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (window.location.hostname.includes('railway.app')
+    ? 'https://<TU_SUBDOMINIO>.railway.app' // Cambia esto por tu subdominio Railway real
+    : 'http://localhost:3000');
+
 function App() {
   const [isLogin, setIsLogin] = useState(true);
   const [role, setRole] = useState(null);
@@ -42,7 +49,8 @@ function LoginForm({ toggleForm, setRole }) {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:3001/login', {
+      // Login
+      const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -101,7 +109,8 @@ function RegisterForm({ toggleForm }) {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:3001/register', {
+      // Register
+      const response = await fetch(`${API_URL}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password, role }),
@@ -201,3 +210,11 @@ function RoleBasedPage({ role }) {
 }
 
 export default App;
+
+// Ejemplo de uso en fetch:
+// fetch(`${API_URL}/login`, {...})
+// fetch(`${API_URL}/register`, {...})
+// fetch(`${API_URL}/dishes`, {...})
+// fetch(`${API_URL}/orders`, {...})
+// fetch(`${API_URL}/payments`, {...})
+// ...etc...
