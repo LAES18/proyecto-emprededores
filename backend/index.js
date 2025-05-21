@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 
 const app = express();
-const port = 3001;
+const port = 53929;
 
 // Middleware
 app.use(cors());
@@ -12,9 +12,9 @@ app.use(bodyParser.json());
 
 // Conexión a la base de datos
 const db = mysql.createConnection({
-  host: '127.0.0.1',
+  host: 'tramway.proxy.rlwy.net',
   user: 'root',
-  password: 'admin',
+  password: 'biNuurNEajxKdCHkUdFbiXgJyLoEEjDm',
   database: 'comedor_system',
 });
 
