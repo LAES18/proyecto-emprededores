@@ -11,8 +11,8 @@ const SPOONACULAR_API_KEY = "67ce982a724d41798877cf212f48d0de";
 // Usa la misma API_URL que en App.jsx
 const API_URL =
   import.meta.env.VITE_API_URL ||
-  (window.location.hostname.includes('railway.app')
-    ? 'https://<TU_SUBDOMINIO>.railway.app'
+  (import.meta.env.PROD
+    ? '' // En producción, usa el mismo dominio (backend y frontend juntos)
     : 'http://localhost:3001');
 
 const AdminScreen = () => {

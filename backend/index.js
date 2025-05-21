@@ -4,6 +4,7 @@ const express = require('express');
 const mysql = require('mysql2');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -428,6 +429,14 @@ app.put('/users/:id', (req, res) => {
       return res.status(200).send('Usuario actualizado exitosamente');
     }
   });
+});
+
+// Servir archivos estáticos del frontend (Vite build)
+app.use(express.static(path.join(__dirname, '../dist')));
+
+// Para cualquier ruta que no sea API, devolver index.html (SPA)
+app.get(/^\/(?!api).*/, (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
 app.listen(port, () => {

@@ -13,6 +13,7 @@
   },
   "scripts": {
     "dev": "nodemon index.js",
-    "start": "node index.js"
+    "start": "node index.js",
+    "heroku-postbuild": "cd .. && npm install && npm run build"
   }
 }

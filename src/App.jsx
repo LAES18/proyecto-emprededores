@@ -7,8 +7,8 @@ import { useNavigate } from 'react-router-dom';
 // Detecta el entorno y configura la URL base del backend
 const API_URL =
   import.meta.env.VITE_API_URL ||
-  (window.location.hostname.includes('railway.app')
-    ? 'https://<TU_SUBDOMINIO>.railway.app' // Cambia esto por tu subdominio Railway real
+  (import.meta.env.PROD
+    ? '' // En producción, usa el mismo dominio (backend y frontend juntos)
     : 'http://localhost:3001');
 
 function App() {

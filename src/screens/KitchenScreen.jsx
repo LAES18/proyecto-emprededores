@@ -4,8 +4,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 const API_URL =
   import.meta.env.VITE_API_URL ||
-  (window.location.hostname.includes('railway.app')
-    ? 'https://<TU_SUBDOMINIO>.railway.app'
+  (import.meta.env.PROD
+    ? '' // En producción, usa el mismo dominio (backend y frontend juntos)
     : 'http://localhost:3001');
 
 const KitchenScreen = () => {
