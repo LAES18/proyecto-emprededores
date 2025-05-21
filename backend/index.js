@@ -6,7 +6,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 
 const app = express();
-const port = process.env.PORT || 53929;
+const port = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
@@ -215,7 +215,7 @@ app.post('/dishes', (req, res) => {
 // Rutas para manejar órdenes
 app.get('/orders', (req, res) => {
   const status = req.query.status;
-  let query = `SELECT o.*, GROUP_CONCAT(d.name) as dishes, GROUP_CONCAT(d.type) as types, GROUP_CONCAT(d.price) as prices FROM orders o
+  let query = `SELECT o.*, GROUP_CONCAT(d.name ORDER BY oi.id) as dishes, GROUP_CONCAT(d.type ORDER BY oi.id) as types, GROUP_CONCAT(d.price ORDER BY oi.id) as prices FROM orders o
     JOIN order_items oi ON o.id = oi.order_id
     JOIN dishes d ON oi.dish_id = d.id`;
   const params = [];
@@ -231,14 +231,23 @@ app.get('/orders', (req, res) => {
     if (err) {
       res.status(500).send('Error al obtener órdenes');
     } else {
-      const formatted = results.map(r => ({
-        ...r,
-        dishes: r.dishes ? r.dishes.split(',').map((name, i) => ({
-          name,
-          type: r.types.split(',')[i],
-          price: r.prices.split(',')[i]
-        })) : []
-      }));
+      // Asegura que los campos dishes/types/prices sean arrays y price sea numérico
+      const formatted = results.map(r => {
+        let dishesArr = [], typesArr = [], pricesArr = [];
+        if (r.dishes && r.types && r.prices) {
+          dishesArr = r.dishes.split(',');
+          typesArr = r.types.split(',');
+          pricesArr = r.prices.split(',');
+        }
+        return {
+          ...r,
+          dishes: dishesArr.map((name, i) => ({
+            name,
+            type: typesArr[i],
+            price: parseFloat(pricesArr[i])
+          }))
+        };
+      });
       res.status(200).json(formatted);
     }
   });

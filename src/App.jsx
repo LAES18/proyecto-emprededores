@@ -9,7 +9,7 @@ const API_URL =
   import.meta.env.VITE_API_URL ||
   (window.location.hostname.includes('railway.app')
     ? 'https://<TU_SUBDOMINIO>.railway.app' // Cambia esto por tu subdominio Railway real
-    : 'http://localhost:3000');
+    : 'http://localhost:3001');
 
 function App() {
   const [isLogin, setIsLogin] = useState(true);

@@ -2,12 +2,18 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (window.location.hostname.includes('railway.app')
+    ? 'https://<TU_SUBDOMINIO>.railway.app'
+    : 'http://localhost:3001');
+
 const KitchenScreen = () => {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
     const fetchOrders = () => {
-      axios.get('http://localhost:3001/orders')
+      axios.get(`${API_URL}/orders`)
         .then(response => {
           // Mostrar solo órdenes pendientes o en_proceso
           const filteredOrders = response.data.filter(order => order.status === 'pendiente' || order.status === 'en_proceso');
@@ -21,7 +27,7 @@ const KitchenScreen = () => {
   }, []);
 
   const handleMarkAsReady = (orderId) => {
-    axios.patch(`http://localhost:3001/orders/${orderId}`, { status: 'servido' })
+    axios.patch(`${API_URL}/orders/${orderId}`, { status: 'servido' })
       .then(() => {
         alert('Orden marcada como lista');
         setOrders(orders.filter(order => order.id !== orderId));

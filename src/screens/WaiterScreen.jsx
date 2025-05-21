@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Collapse } from 'react-bootstrap';
 
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (window.location.hostname.includes('railway.app')
+    ? 'https://<TU_SUBDOMINIO>.railway.app'
+    : 'http://localhost:3001');
+
 const WaiterScreen = () => {
   const [dishes, setDishes] = useState([]);
   const [selectedDishes, setSelectedDishes] = useState([]);
@@ -12,7 +18,7 @@ const WaiterScreen = () => {
 
   useEffect(() => {
     const fetchDishes = () => {
-      axios.get('http://localhost:3001/dishes')
+      axios.get(`${API_URL}/dishes`)
         .then(response => {
           const defaultImages = {
             desayuno: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
@@ -61,7 +67,7 @@ const WaiterScreen = () => {
       user_id: 1, // Reemplazar con el usuario real si tienes auth
       mesa,
     };
-    axios.post('http://localhost:3001/orders', orderData)
+    axios.post(`${API_URL}/orders`, orderData)
       .then(() => {
         alert('Orden enviada exitosamente');
         setSelectedDishes([]);
@@ -74,7 +80,7 @@ const WaiterScreen = () => {
   };
 
   const calculateTotal = () => {
-    return selectedDishes.reduce((total, dish) => total + dish.price, 0).toFixed(2);
+    return selectedDishes.reduce((total, dish) => total + (parseFloat(dish.price) || 0), 0).toFixed(2);
   };
 
   return (

@@ -8,6 +8,13 @@ import * as XLSX from 'xlsx';
 // Define Spoonacular API key
 const SPOONACULAR_API_KEY = "67ce982a724d41798877cf212f48d0de";
 
+// Usa la misma API_URL que en App.jsx
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (window.location.hostname.includes('railway.app')
+    ? 'https://<TU_SUBDOMINIO>.railway.app'
+    : 'http://localhost:3001');
+
 const AdminScreen = () => {
   const [activeTab, setActiveTab] = useState('platillos');
   const [dishes, setDishes] = useState([]);
@@ -33,16 +40,16 @@ const AdminScreen = () => {
   
   useEffect(() => {
     const fetchAll = () => {
-      axios.get('http://localhost:3001/orders?status=pagado')
+      axios.get(`${API_URL}/orders?status=pagado`)
         .then(response => setOrders(response.data))
         .catch(error => console.error('Error al obtener las órdenes:', error));
-      axios.get('http://localhost:3001/payments')
+      axios.get(`${API_URL}/payments`)
         .then(response => setPayments(response.data))
         .catch(error => console.error('Error al obtener los pagos:', error));
-      axios.get('http://localhost:3001/dishes')
+      axios.get(`${API_URL}/dishes`)
         .then(response => setDishes(response.data))
         .catch(error => console.error('Error al obtener los platillos:', error));
-      axios.get('http://localhost:3001/users')
+      axios.get(`${API_URL}/users`)
         .then(response => setUsers(response.data))
         .catch(error => console.error('Error al obtener los usuarios:', error));
     };
@@ -52,16 +59,16 @@ const AdminScreen = () => {
   }, []);
 
   const handleAddDish = () => {
-    axios.post('http://localhost:3001/dishes', newDish)
+    axios.post(`${API_URL}/dishes`, newDish)
       .then(() => {
         setNewDish({ name: '', price: '', type: 'desayuno' });
-        axios.get('http://localhost:3001/dishes').then(r => setDishes(r.data));
+        axios.get(`${API_URL}/dishes`).then(r => setDishes(r.data));
       })
       .catch(error => console.error('Error al agregar el platillo:', error));
   };
 
   const handleDeleteDish = (dishId) => {
-    axios.delete(`http://localhost:3001/dishes/${dishId}`)
+    axios.delete(`${API_URL}/dishes/${dishId}`)
       .then(() => {
         setDishes(dishes.filter(dish => dish.id !== dishId));
       })
@@ -73,7 +80,7 @@ const AdminScreen = () => {
       alert("Por favor, completa todos los campos antes de agregar un usuario.");
       return;
     }
-    axios.post('http://localhost:3001/register', newUser)
+    axios.post(`${API_URL}/register`, newUser)
       .then(() => {
         setUsers([...users, newUser]);
         setNewUser({ name: '', email: '', password: '', role: '' }); // Limpiar formulario
@@ -85,7 +92,7 @@ const AdminScreen = () => {
     if (!window.confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
       return;
     }
-    axios.delete(`http://localhost:3001/users/${userId}`)
+    axios.delete(`${API_URL}/users/${userId}`)
       .then(() => {
         setUsers(users.filter(user => user.id !== userId));
       })
@@ -102,7 +109,7 @@ const AdminScreen = () => {
     if (!userToSend.password) {
       delete userToSend.password;
     }
-    axios.put(`http://localhost:3001/users/${userId}`, userToSend)
+    axios.put(`${API_URL}/users/${userId}`, userToSend)
       .then(() => {
         setUsers(users.map(user => user.id === userId ? { ...user, ...updatedUser } : user));
         setEditingUser(null);
@@ -137,7 +144,7 @@ const AdminScreen = () => {
         type: type,
         image: item.image
       };
-      await axios.post('http://localhost:3001/dishes', newDish);
+      await axios.post(`${API_URL}/dishes`, newDish);
       setDishes([...dishes, newDish]);
       setSpoonacularTypeSelect({ show: false, item: null });
     } catch (error) {
@@ -147,20 +154,39 @@ const AdminScreen = () => {
 
   const handleDownloadInvoice = (order, payment) => {
     const doc = new jsPDF();
-    let y = 10;
-    doc.setFontSize(16);
-    doc.text('Factura', 10, y);
-    y += 10;
+    let y = 15;
+    doc.setFontSize(18);
+    doc.text('Factura', 105, y, { align: 'center' });
+    y += 12;
     doc.setFontSize(12);
-    doc.text(`Orden #${order.id} - Mesa: ${order.mesa || 'N/A'}`, 10, y);
-    y += 8;
+    doc.text(`Orden #${order.id}   Mesa: ${order.mesa || 'N/A'}`, 15, y);
+    y += 10;
+    doc.setLineWidth(0.5);
+    doc.line(15, y, 195, y);
+    y += 6;
+    doc.setFontSize(11);
     order.dishes.forEach(dish => {
-      doc.text(`${dish.name} (${dish.type}) - $${dish.price}`, 14, y);
-      y += 7;
+      doc.text(`${dish.name} (${dish.type})`, 18, y);
+      doc.text(`$${dish.price.toFixed(2)}`, 180, y, { align: 'right' });
+      y += 9;
     });
-    doc.text(`Total: $${payment.total}`, 14, y);
+    y += 2;
+    doc.setLineWidth(0.3);
+    doc.line(15, y, 195, y);
     y += 8;
-    doc.text(`Método de pago: ${payment.method}`, 10, y);
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Total: $${parseFloat(payment.total).toFixed(2)}`, 18, y);
+    doc.setFont('helvetica', 'normal');
+    y += 10;
+    doc.setFontSize(11);
+    doc.text(`Método de pago: ${payment.method}`, 18, y);
+    y += 8;
+    doc.text(`Fecha: ${payment.paid_at ? payment.paid_at.substring(0, 19).replace('T', ' ') : ''}`, 18, y);
+    y += 12;
+    doc.setFontSize(12);
+    doc.setTextColor(100, 100, 100);
+    doc.text('¡Gracias por su compra!', 105, y, { align: 'center' });
     doc.save(`factura_orden_${order.id}.pdf`);
   };
 
