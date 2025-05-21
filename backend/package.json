@@ -15,6 +15,6 @@
     "dev": "nodemon index.js",
     "start": "node index.js",
     "heroku-postbuild": "cd .. && npm install && npm run build",
-    "build-and-start": "cd .. && npm install && npm run build && cd backend && node index.js"
+    "build-and-start": "npm run build --prefix .. && node index.js"
   }
 }
