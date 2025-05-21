@@ -7,7 +7,7 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-const port = process.env.PORT || 53929;
+const port = process.env.PORT || 3306;
 
 // Middleware
 app.use(cors());
@@ -15,7 +15,7 @@ app.use(bodyParser.json());
 
 // Conexión a la base de datos usando variables de entorno para compatibilidad Railway/local
 const db = mysql.createConnection({
-  host: process.env.MYSQLHOST || 'tramway.proxy.rlwy.net',
+  host: process.env.MYSQLHOST || 'mysql.railway.internal',
   user: process.env.MYSQLUSER || 'root',
   password: process.env.MYSQLPASSWORD || ':biNuurNEajxKdCHkUdFbiXgJyLoEEjDm',
   database: process.env.MYSQLDATABASE || 'railway',
