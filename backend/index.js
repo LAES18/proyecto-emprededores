@@ -7,7 +7,7 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 53929;
 
 // Middleware
 app.use(cors());
@@ -457,6 +457,14 @@ app.use('/api/*', (req, res) => {
 
 // Servir archivos estáticos del frontend (Vite build)
 app.use(express.static(path.join(__dirname, '../dist')));
+
+// Para cualquier método que no sea GET en rutas que no sean /api, responde 405 explícito
+app.all(/^\/(?!api).*/, (req, res, next) => {
+  if (req.method !== 'GET') {
+    return res.status(405).send('Method Not Allowed');
+  }
+  next();
+});
 
 // Para cualquier ruta GET que no sea API, devolver index.html (SPA)
 app.get(/^\/(?!api).*/, (req, res) => {
