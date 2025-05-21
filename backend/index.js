@@ -139,24 +139,36 @@ db.query(checkRoleEnum, (err, results) => {
 // Prefijo para todas las rutas de API
 const api = express.Router();
 
+// Log global para todas las peticiones a /api/*
+api.use((req, res, next) => {
+  console.log(`[API] ${req.method} ${req.originalUrl} - Body:`, req.body);
+  next();
+});
+
 // Rutas para manejar roles y autenticación
 api.post('/register', (req, res) => {
   const { name, email, password, role } = req.body;
 
+  // Log de los datos recibidos
+  console.log('Intentando registrar usuario:', { name, email, password, role });
+
   // Validar que todos los campos estén presentes
   if (!name || !email || !password || !role) {
+    console.log('Faltan campos en el registro:', req.body);
     return res.status(400).json({ error: 'Todos los campos son obligatorios' });
   }
 
   // Validar formato del correo electrónico
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
+    console.log('Formato de correo inválido:', email);
     return res.status(400).json({ error: 'Formato de correo electrónico inválido' });
   }
 
   // Validar que el rol sea uno de los permitidos
   const allowedRoles = ['administrador', 'mesero', 'cocina', 'cobrador'];
   if (!allowedRoles.includes(role)) {
+    console.log('Rol inválido:', role);
     return res.status(400).json({ error: `Rol inválido. Debe ser uno de: ${allowedRoles.join(', ')}` });
   }
 
@@ -436,6 +448,12 @@ api.put('/users/:id', (req, res) => {
 
 // Usar el prefijo /api para todas las rutas de API
 app.use('/api', api);
+
+// Handler para rutas de API no encontradas (debug 404 vs 405)
+app.use('/api/*', (req, res) => {
+  console.log('API route not found:', req.method, req.originalUrl);
+  res.status(404).json({ error: 'API route not found' });
+});
 
 // Servir archivos estáticos del frontend (Vite build)
 app.use(express.static(path.join(__dirname, '../dist')));
