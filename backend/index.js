@@ -113,13 +113,25 @@ db.query(createOrderItems, (err) => {
   }
 });
 
-// Asegura que el ENUM de 'role' en users sea correcto al iniciar el backend
-const alterRoleEnum = `ALTER TABLE users MODIFY COLUMN role ENUM('administrador', 'mesero', 'cocina', 'cobrador') NOT NULL;`;
-db.query(alterRoleEnum, (err) => {
-  if (err) {
-    console.error("Error al actualizar el tipo ENUM de 'role' en la tabla 'users':", err);
-  } else {
-    console.log("Tipo ENUM de 'role' en la tabla 'users' actualizado correctamente.");
+// Asegura que el ENUM de 'role' en users sea correcto al iniciar el backend SOLO si es necesario
+const checkRoleEnum = `SHOW COLUMNS FROM users LIKE 'role';`;
+db.query(checkRoleEnum, (err, results) => {
+  if (!err && results && results[0]) {
+    const type = results[0].Type;
+    if (!type.includes("'administrador'") || !type.includes("'mesero'") || !type.includes("'cocina'") || !type.includes("'cobrador'")) {
+      const alterRoleEnum = `ALTER TABLE users MODIFY COLUMN role ENUM('administrador', 'mesero', 'cocina', 'cobrador') NOT NULL;`;
+      db.query(alterRoleEnum, (err2) => {
+        if (err2) {
+          console.error("Error al actualizar el tipo ENUM de 'role' en la tabla 'users':", err2);
+        } else {
+          console.log("Tipo ENUM de 'role' en la tabla 'users' actualizado correctamente.");
+        }
+      });
+    } else {
+      console.log("El ENUM de 'role' ya es correcto.");
+    }
+  } else if (err) {
+    console.error("Error al verificar el tipo ENUM de 'role':", err);
   }
 });
 
