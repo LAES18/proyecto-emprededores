@@ -7,7 +7,7 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-const port = process.env.PORT || 3306;
+const port = process.env.PORT || 8080;
 
 // Middleware
 app.use(cors());
@@ -440,8 +440,8 @@ app.use('/api', api);
 // Servir archivos estáticos del frontend (Vite build)
 app.use(express.static(path.join(__dirname, '../dist')));
 
-// Para cualquier ruta que no sea API, devolver index.html (SPA)
-app.get('*', (req, res) => {
+// Para cualquier ruta GET que no sea API, devolver index.html (SPA)
+app.get(/^\/(?!api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
