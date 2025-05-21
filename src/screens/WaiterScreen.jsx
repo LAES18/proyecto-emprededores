@@ -5,8 +5,8 @@ import { Collapse } from 'react-bootstrap';
 const API_URL =
   import.meta.env.VITE_API_URL ||
   (import.meta.env.PROD
-    ? '' // En producción, usa el mismo dominio (backend y frontend juntos)
-    : 'http://localhost:3001');
+    ? '/api'
+    : 'http://localhost:3001/api');
 
 const WaiterScreen = () => {
   const [dishes, setDishes] = useState([]);

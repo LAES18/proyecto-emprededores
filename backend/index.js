@@ -136,8 +136,11 @@ db.query(checkRoleEnum, (err, results) => {
   }
 });
 
+// Prefijo para todas las rutas de API
+const api = express.Router();
+
 // Rutas para manejar roles y autenticación
-app.post('/register', (req, res) => {
+api.post('/register', (req, res) => {
   const { name, email, password, role } = req.body;
 
   // Validar que todos los campos estén presentes
@@ -171,7 +174,7 @@ app.post('/register', (req, res) => {
   });
 });
 
-app.post('/login', (req, res) => {
+api.post('/login', (req, res) => {
   const { email, password } = req.body;
   const query = 'SELECT * FROM users WHERE (email = ? OR name = ?) AND password = ?';
   db.query(query, [email, email, password], (err, results) => {
@@ -184,7 +187,7 @@ app.post('/login', (req, res) => {
 });
 
 // Rutas para manejar platillos
-app.get('/dishes', (req, res) => {
+api.get('/dishes', (req, res) => {
   const type = req.query.type;
   let query = 'SELECT * FROM dishes';
   const params = [];
@@ -201,7 +204,7 @@ app.get('/dishes', (req, res) => {
   });
 });
 
-app.post('/dishes', (req, res) => {
+api.post('/dishes', (req, res) => {
   const { name, type, price } = req.body;
   const query = 'INSERT INTO dishes (name, type, price) VALUES (?, ?, ?)';
   db.query(query, [name, type, price], (err) => {
@@ -214,7 +217,7 @@ app.post('/dishes', (req, res) => {
 });
 
 // Rutas para manejar órdenes
-app.get('/orders', (req, res) => {
+api.get('/orders', (req, res) => {
   const status = req.query.status;
   let query = `SELECT o.*, GROUP_CONCAT(d.name ORDER BY oi.id) as dishes, GROUP_CONCAT(d.type ORDER BY oi.id) as types, GROUP_CONCAT(d.price ORDER BY oi.id) as prices FROM orders o
     JOIN order_items oi ON o.id = oi.order_id
@@ -254,7 +257,7 @@ app.get('/orders', (req, res) => {
   });
 });
 
-app.post('/orders', (req, res) => {
+api.post('/orders', (req, res) => {
   const { dishes, user_id, mesa } = req.body;
   if (!dishes || !Array.isArray(dishes) || dishes.length === 0) {
     return res.status(400).send('No se enviaron platillos');
@@ -273,7 +276,7 @@ app.post('/orders', (req, res) => {
 });
 
 // Actualizar estado de la orden (para cocina)
-app.patch('/orders/:id', (req, res) => {
+api.patch('/orders/:id', (req, res) => {
   const { status } = req.body;
   db.query('UPDATE orders SET status = ? WHERE id = ?', [status, req.params.id], (err) => {
     if (err) return res.status(500).send('Error al actualizar estado');
@@ -282,7 +285,7 @@ app.patch('/orders/:id', (req, res) => {
 });
 
 // Rutas para manejar cobros
-app.get('/payments', (req, res) => {
+api.get('/payments', (req, res) => {
   const query = 'SELECT * FROM payments';
   db.query(query, (err, results) => {
     if (err) {
@@ -294,7 +297,7 @@ app.get('/payments', (req, res) => {
 });
 
 // Endpoint to fetch all users
-app.get('/users', (req, res) => {
+api.get('/users', (req, res) => {
   const query = 'SELECT id, name, email, role FROM users';
   db.query(query, (err, results) => {
     if (err) {
@@ -307,7 +310,7 @@ app.get('/users', (req, res) => {
 });
 
 // Ruta para eliminar un platillo
-app.delete('/dishes/:id', (req, res) => {
+api.delete('/dishes/:id', (req, res) => {
   const dishId = req.params.id;
 
   // Eliminar referencias en la tabla order_items
@@ -332,7 +335,7 @@ app.delete('/dishes/:id', (req, res) => {
 });
 
 // Ruta para eliminar un usuario
-app.delete('/users/:id', (req, res) => {
+api.delete('/users/:id', (req, res) => {
   const userId = req.params.id;
 
   const deleteUserQuery = 'DELETE FROM users WHERE id = ?';
@@ -349,7 +352,7 @@ app.delete('/users/:id', (req, res) => {
 });
 
 // Actualizar la lógica del backend para manejar el estado 'pagado'
-app.post('/payments', (req, res) => {
+api.post('/payments', (req, res) => {
   const payments = req.body;
 
   console.log('Received Payments:', payments); // Debugging log
@@ -409,7 +412,7 @@ db.query(alterStatusEnum, (err) => {
 });
 
 // Ruta para actualizar detalles de usuario por ID
-app.put('/users/:id', (req, res) => {
+api.put('/users/:id', (req, res) => {
   const { name, email, password, role } = req.body;
   const userId = req.params.id;
 
@@ -431,11 +434,14 @@ app.put('/users/:id', (req, res) => {
   });
 });
 
+// Usar el prefijo /api para todas las rutas de API
+app.use('/api', api);
+
 // Servir archivos estáticos del frontend (Vite build)
 app.use(express.static(path.join(__dirname, '../dist')));
 
 // Para cualquier ruta que no sea API, devolver index.html (SPA)
-app.get(/^\/(?!api).*/, (req, res) => {
+app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 

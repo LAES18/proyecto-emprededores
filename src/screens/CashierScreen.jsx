@@ -5,8 +5,8 @@ import jsPDF from 'jspdf';
 const API_URL =
   import.meta.env.VITE_API_URL ||
   (import.meta.env.PROD
-    ? '' // En producción, usa el mismo dominio (backend y frontend juntos)
-    : 'http://localhost:3001');
+    ? '/api'
+    : 'http://localhost:3001/api');
 
 const CashierScreen = () => {
   const [orders, setOrders] = useState([]);

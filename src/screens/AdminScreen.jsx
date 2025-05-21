@@ -12,8 +12,8 @@ const SPOONACULAR_API_KEY = "67ce982a724d41798877cf212f48d0de";
 const API_URL =
   import.meta.env.VITE_API_URL ||
   (import.meta.env.PROD
-    ? '' // En producción, usa el mismo dominio (backend y frontend juntos)
-    : 'http://localhost:3001');
+    ? '/api'
+    : 'http://localhost:3001/api');
 
 const AdminScreen = () => {
   const [activeTab, setActiveTab] = useState('platillos');
